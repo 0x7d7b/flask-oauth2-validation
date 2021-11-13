@@ -263,7 +263,7 @@ class OAuth2Decorator():
                 do_time_check=True
             )
             if 'iss' not in decoded or not self._issuer == decoded['iss']:
-                raise OAuth2Decorator('Invalid issuer')
+                raise OAuth2Exception('Invalid issuer')
             return decoded
         except JWTDecodeError as decode_error:
             raise OAuth2Exception(str(decode_error))
