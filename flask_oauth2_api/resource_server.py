@@ -64,7 +64,6 @@ class OAuth2Decorator():
         # Then we need to retrieve it from the authorization
         # metadata endpoint
         if (self._use_self_encoded_token
-            and not self._issuer_pubkey
                 and not self._jwks_uri):
             self._jwks_uri = self._lookup_metadata('jwks_uri')
 
