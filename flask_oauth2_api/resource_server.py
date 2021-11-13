@@ -240,11 +240,11 @@ class OAuth2Decorator():
                 'returned unexpected status code:',
                 response.status_code
             )
-            return False
+            return None
         token_information = response.json()
-        if 'active' in token_information:
-            return bool(token_information['active'])
-        return False
+        if 'active' in token_information and token_information['active']:
+            return token_information
+        return None
 
     def _validate_jwt(self, token: str) -> bool:
         pubkey = None
