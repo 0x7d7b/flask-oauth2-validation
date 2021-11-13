@@ -24,16 +24,17 @@ class OAuth2Decorator():
 
         app.config.setdefault('OAUTH2_ISSUER', None)
         app.config.setdefault('OAUTH2_JWKS_URI', None)
-        app.config.setdefault('OAUTH2_ISSUER_PUBKEY', None)
         app.config.setdefault('OAUTH2_CLIENT_ID', None)
         app.config.setdefault('OAUTH2_CLIENT_SECRET', None)
         app.config.setdefault('OAUTH2_INTROSPECTION_ENDPOINT', None)
         app.config.setdefault('OAUTH2_INTROSPECTION_AUTH_METHOD', None)
 
+        # By default we assume that we validate JWT self-encoded tokens
+        self._use_self_encoded_token = True
+
         self._issuer = None
         self._jwks_uri = None
-        self._issuer_pubkey = None
-        # FIXME: refresh keys regularly!
+        # FIXME: refresh keys regularly in case we have a valid jwks_uri!
         self._issuer_public_keys = None
         self._client_id = None
         self._client_secret = None
@@ -41,15 +42,6 @@ class OAuth2Decorator():
         self._introspection_auth_method = None
         self._jwks_uri = None
         self._jwt = None
-
-        # By default we assume that we validate JWT self-encoded tokens
-        self._use_self_encoded_token = True
-
-        # In case we configure OAUTH2_ISSUER_PUBKEY this will be set
-        self._issuer_pubkey = None
-
-        # This will be set when retrieving multiple keys from the jwks_uri
-        self._issuer_public_keys = None
 
         # The only mandatory value is the issuer URI.
         # In case it is the only value we expect it to offer
@@ -264,8 +256,6 @@ class OAuth2Decorator():
 
     def _validate_jwt(self, token: str) -> bool:
         pubkey = None
-        if self._issuer_pubkey:
-            pubkey = jwk_from_bytes(self._issuer_pubkey)
         if self._issuer_public_keys:
             key_id = self._lookup_key_id(token)
             if key_id and key_id in self._issuer_public_keys:
@@ -275,11 +265,15 @@ class OAuth2Decorator():
                 'Token signature invalid'
             )
         try:
+            # FIXME: always validate against the configured issuer!
             decoded = self._jwt.decode(
                 token,
                 pubkey,
                 do_time_check=True
             )
+            if 'iss' in decoded:
+                if not self._issuer == decoded['iss']:
+                    raise OAuth2Decorator('Invalid issuer')
             return decoded
         except JWTDecodeError as decode_error:
             raise OAuth2Exception(str(decode_error))
