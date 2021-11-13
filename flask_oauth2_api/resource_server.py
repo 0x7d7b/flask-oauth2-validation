@@ -168,7 +168,7 @@ class OAuth2Decorator():
                 str(http_error)
             )
 
-    def _handle_token(self, scopes: list, fn, *args, **kwds):
+    def _handle_token(self, scopes: list, fn, *args, **kwargs):
         try:
             if not request.headers.get('Authorization', None):
                 return jsonify({
@@ -182,7 +182,7 @@ class OAuth2Decorator():
                     'error_description': 'Bearer access token missing'
                 }), 401
             if self._is_valid(token):
-                return fn(*args, **kwds)
+                return fn(*args, **kwargs)
             else:
                 return jsonify({
                     'error': 'invalid_token',
