@@ -33,6 +33,7 @@ class OAuth2Decorator():
         self._issuer = None
         self._jwks_uri = None
         self._issuer_pubkey = None
+        # FIXME: refresh keys regularly!
         self._issuer_public_keys = None
         self._client_id = None
         self._client_secret = None
@@ -145,7 +146,7 @@ class OAuth2Decorator():
             if key in metadata:
                 return metadata[key]
             raise TypeError(
-                'No',
+                'No attribute',
                 key,
                 'found in authorization server metadata'
             )
