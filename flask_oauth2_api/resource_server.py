@@ -182,7 +182,7 @@ class OAuth2Decorator():
                     'error_description': 'Bearer access token missing'
                 }), 401
             if self._is_valid(token):
-                return fn(args, kwds)
+                return fn(*args, **kwds)
             else:
                 return jsonify({
                     'error': 'invalid_token',
