@@ -50,12 +50,6 @@ class OAuth2Decorator():
             raise TypeError('An OAUTH2_ISSUER config property is required')
         self._issuer = app.config.get('OAUTH2_ISSUER')
 
-        # In case we already have a pubkey we don't need more information.
-        # We will use it to validate self-encoded JWT tokens.
-        self._issuer_pubkey = app.config.get('OAUTH2_ISSUER_PUBKEY')
-        if self._issuer_pubkey:
-            return
-
         # In case we have a client id we assume that we will use the
         # introspect endpoint and that we use reference tokens.
         self._client_id = app.config.get('OAUTH2_CLIENT_ID')
@@ -91,7 +85,6 @@ class OAuth2Decorator():
             # we need to look it up from the metadata endpoint, first.
             if not self._introspection_endpoint:
                 self._introspection_endpoint = self._lookup_metadata(
-                    self,
                     'introspection_endpoint'
                 )
             self._introspection_auth_method = app.config.get(
@@ -109,7 +102,6 @@ class OAuth2Decorator():
             # Once we've configure an auth method we need to
             # validate it against the ones supported by the server
             server_supported_auth_methods = self._lookup_metadata(
-                self,
                 'introspection_endpoint_auth_methods_supported'
             )
             if (self._introspection_auth_method
