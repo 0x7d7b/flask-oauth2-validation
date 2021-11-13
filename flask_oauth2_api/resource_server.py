@@ -68,10 +68,7 @@ class OAuth2Decorator():
             self._jwks_uri = self._lookup_metadata('jwks_uri')
 
         if self._use_self_encoded_token:
-            # In case we don't have any public key we need to look
-            # up all available pubkeys from the auth server
-            if not self._issuer_pubkey:
-                self._lookup_keys()
+            self._lookup_keys()
             self._jwt = JWT()
         else:
             # We use reference tokens and no self-encoded tokens
