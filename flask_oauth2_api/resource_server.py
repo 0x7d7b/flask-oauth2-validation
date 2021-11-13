@@ -2,7 +2,7 @@ from flask import request
 from flask.app import Flask
 from flask.json import jsonify
 from functools import wraps
-from jwt import JWT, jwk_from_dict, jwk_from_bytes
+from jwt import JWT, jwk_from_dict¸
 from jwt.exceptions import JWTDecodeError
 import base64
 import json
