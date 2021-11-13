@@ -257,7 +257,6 @@ class OAuth2Decorator():
                 'Token signature invalid'
             )
         try:
-            # FIXME: always validate against the configured issuer!
             decoded = self._jwt.decode(
                 token,
                 pubkey,
