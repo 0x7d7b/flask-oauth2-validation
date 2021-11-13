@@ -1,6 +1,4 @@
-from flask import request
-from flask.app import Flask
-from flask.json import jsonify
+from flask import Flask, jsonify, request
 from functools import wraps
 from jwt import JWT, jwk_from_dict
 from jwt.exceptions import JWTDecodeError
