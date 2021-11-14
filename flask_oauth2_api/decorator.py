@@ -78,7 +78,11 @@ class OAuth2Decorator():
             self._lookup_keys()
             self._jwks_last_update_timestamp = time.time()
             self._jwt = JWT()
-            self._executor = Executor(app)
+            self._jwks_update_interval = app.config.get(
+                'OAUTH2_JWKS_UPDATE_INTERVAL'
+            )
+            if self._jwks_update_interval:
+                self._executor = Executor(app, 'oauth2_jwks_update_task')
         else:
             # We use reference tokens and no self-encoded tokens
             self._introspection_endpoint = app.config.get(
