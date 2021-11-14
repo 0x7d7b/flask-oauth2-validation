@@ -8,7 +8,8 @@ setup_dependencies = [
 
 install_dependencies = [
     'jwt',
-    'requests'
+    'requests',
+    'flask-executor'
 ]
 
 test_dependencies = [

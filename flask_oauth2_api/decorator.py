@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from flask_executor import Executor
 from functools import wraps
 from jwt import JWT, jwk_from_dict
 from jwt.exceptions import JWTDecodeError
@@ -6,6 +7,8 @@ import base64
 import json
 import logging
 import requests
+import time
+import threading
 
 
 class OAuth2Exception(BaseException):
@@ -22,6 +25,7 @@ class OAuth2Decorator():
 
         app.config.setdefault('OAUTH2_ISSUER', None)
         app.config.setdefault('OAUTH2_JWKS_URI', None)
+        app.config.setdefault('OAUTH2_JWKS_UPDATE_INTERVAL', None)
         app.config.setdefault('OAUTH2_CLIENT_ID', None)
         app.config.setdefault('OAUTH2_CLIENT_SECRET', None)
         app.config.setdefault('OAUTH2_INTROSPECTION_ENDPOINT', None)
@@ -32,7 +36,10 @@ class OAuth2Decorator():
 
         self._issuer = None
         self._jwks_uri = None
-        # FIXME: refresh keys regularly in case we have a valid jwks_uri!
+        self._jwks_update_interval = None
+        self._jwks_last_update_timestamp = None
+        self._jwks_update_mutex = threading.Lock()
+        self._executor = None
         self._issuer_public_keys = None
         self._client_id = None
         self._client_secret = None
@@ -69,7 +76,9 @@ class OAuth2Decorator():
 
         if self._use_self_encoded_token:
             self._lookup_keys()
+            self._jwks_last_update_timestamp = time.time()
             self._jwt = JWT()
+            self._executor = Executor(app)
         else:
             # We use reference tokens and no self-encoded tokens
             self._introspection_endpoint = app.config.get(
@@ -150,10 +159,11 @@ class OAuth2Decorator():
             jwks_metadata = response.json()
             if 'keys' in jwks_metadata:
                 keys = jwks_metadata['keys']
-                self._issuer_public_keys = {}
+                retrieved_keys = {}
                 for key in keys:
                     if 'kid' in key:
-                        self._issuer_public_keys[key['kid']] = key
+                        retrieved_keys[key['kid']] = key
+                self._issuer_public_keys = retrieved_keys
         except BaseException as http_error:
             raise TypeError(
                 'Cannot request public keys from ',
@@ -164,6 +174,8 @@ class OAuth2Decorator():
 
     def _handle_token(self, scopes: list, fn, *args, **kwargs):
         try:
+            if self._executor:
+                self._executor.submit(self._update_keys)
             if not request.headers.get('Authorization', None):
                 return jsonify({
                     'error': 'invalid_token',
@@ -273,6 +285,20 @@ class OAuth2Decorator():
         except BaseException:
             raise OAuth2Exception('Invalid token format')
         return None
+
+    def _update_keys(self):
+        if (self._use_self_encoded_token
+            and self._jwks_update_interval
+                and self._jwks_last_update_timestamp):
+            with self._jwks_update_mutex:
+                now = time.time()
+                if int(self._jwks_last_update_timestamp) + \
+                        self._jwks_update_interval < now:
+                    self._jwks_last_update_timestamp = now
+                    try:
+                        self._lookup_keys()
+                    except TypeError as error:
+                        self._logger.error(error)
 
     def requires_token(self, scopes=[]):
         def decorator(fn):
