@@ -1,4 +1,4 @@
-from .resource_server import OAuth2Decorator
+from .decorator import OAuth2Decorator
 
 __version__ = "0.1.0"
 __author__ = "Henrik Sachse"
