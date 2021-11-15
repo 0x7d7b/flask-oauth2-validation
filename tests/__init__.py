@@ -24,7 +24,11 @@ def test_app():
             _register_mock_addresses(mock, **kwargs)
             return _create_flask_app()
         yield wrapper
-        _assert_request_history(mock, **_test_app_kwargs)
+        try:
+            _assert_request_history(mock, **_test_app_kwargs)
+        except BaseException:
+            # Just in case catch exceptions at teardown.
+            pass
 
 
 def _create_flask_app():
