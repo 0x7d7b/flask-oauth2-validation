@@ -12,12 +12,20 @@ import threading
 
 
 class OAuth2Exception(BaseException):
+    """ Exception for building up an HTTP error response.
+    In case an error occurs the OAuth2Exception attributes
+    hold information which are being taken over into the
+    json error response.
+    """
+
     def __init__(self, error_message: str):
         self.error = 'invalid_token'
         self.error_message = error_message
 
 
 class OAuth2Decorator():
+    """ Flask view function decorator which adds OAuth2 support.
+    """
 
     def __init__(self, app: Flask):
 
@@ -82,7 +90,18 @@ class OAuth2Decorator():
             self._jwks_uri = self._lookup_metadata('jwks_uri')
 
         if self._use_self_encoded_token:
+
+            # We use a self-encoded JWT token
+
+            # If an audience has been defined the JWT
+            # token 'aud' attribute will be validated
+            # against it
             self._audience = app.config.get('OAUTH2_AUDIENCE')
+
+            # We're looking up the public keys from the
+            # authorization server and specifying the
+            # update interval to refresh the keys
+            # regularly during runtime (if set)
             self._lookup_keys()
             self._jwks_last_update_timestamp = time.time()
             self._jwt = JWT()
@@ -91,20 +110,31 @@ class OAuth2Decorator():
             )
             if self._jwks_update_interval:
                 self._executor = Executor(app, 'oauth2_jwks_update_task')
+
         else:
+
             # We use reference tokens and no self-encoded tokens
+
+            # If an introspection endpoint has been configured
+            # we can skip the authorization server metadata
+            # request to retrieve an introspection endpoint uri
             self._introspection_endpoint = app.config.get(
                 'OAUTH2_INTROSPECTION_ENDPOINT'
             )
+
             # When we don't have an introspection endpoint configured
             # we need to look it up from the metadata endpoint, first.
             if not self._introspection_endpoint:
                 self._introspection_endpoint = self._lookup_metadata(
                     'introspection_endpoint'
                 )
+
+            # It is possible to set up an introspection endpoint
+            # auth method.
             self._introspection_auth_method = app.config.get(
                 'OAUTH2_INTROSPECTION_AUTH_METHOD'
             )
+
             # By default we use the client_secret_post auth method
             if not self._introspection_auth_method:
                 self._introspection_auth_method = 'client_secret_post'
@@ -114,7 +144,8 @@ class OAuth2Decorator():
                     'Unsupported introspection auth method:',
                     self._introspection_auth_method
                 )
-            # Once we've configure an auth method we need to
+
+            # Once we've configured an auth method we need to
             # validate it against the ones supported by the server
             server_supported_auth_methods = self._lookup_metadata(
                 'introspection_endpoint_auth_methods_supported'
@@ -128,6 +159,9 @@ class OAuth2Decorator():
                 )
 
     def _lookup_metadata(self, key: str) -> str:
+        """ Requests metadata information from an authorization endpoint
+        according to RFC-8414.
+        """
         try:
             metadata_uri = self._issuer + \
                 '/.well-known/oauth-authorization-server'
@@ -155,6 +189,8 @@ class OAuth2Decorator():
             )
 
     def _lookup_keys(self) -> dict:
+        """ Downloads the public keys from an authorization server.
+        """
         try:
             self._logger.debug(
                 f'Trying to download public keys from authorization server at {self._jwks_uri}'
@@ -183,6 +219,9 @@ class OAuth2Decorator():
             )
 
     def _handle_token(self, scopes: list, fn, *args, **kwargs):
+        """ OAuth2 decorator logic which is being executed
+        whenever a decorated view function gets invoked.
+        """
         try:
             if self._executor:
                 self._executor.submit(self._update_keys)
@@ -315,6 +354,8 @@ class OAuth2Decorator():
                         self._logger.error(error)
 
     def requires_token(self, scopes=[]):
+        """ Decorates a flask view function to add OAuth2 support.
+        """
         def decorator(fn):
             @wraps(fn)
             def decorated(*args, **kwargs):

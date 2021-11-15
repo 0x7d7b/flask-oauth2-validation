@@ -38,3 +38,49 @@ def test_issuer_and_jwks_uri_configured(test_app):
     oauth2 = OAuth2Decorator(app)
     assert oauth2._jwks_uri == 'https://issuer.local/oauth2/keys'
     assert oauth2._issuer_public_keys == mocked_keys
+
+
+def test_introspection_setup(test_app):
+    """ In case OAUTH2_CLIENT_ID and OAUTH2_CLIENT_SECRET
+    attributes have been set we assume that we will
+    validate tokens via introspection requests during
+    runtime. Therefore we need to lookup the introspection
+    endpoint from the authorization server metadata as well
+    as the supported introspection endpoint auth methods.
+    """
+    # FIXME: 2 metadata request: introspect endpoint and auth methods
+    app = test_app(meta_data=True)
+    app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
+    app.config['OAUTH2_CLIENT_ID'] = 'foo-client'
+    app.config['OAUTH2_CLIENT_SECRET'] = 'very-secure'
+    oauth2 = OAuth2Decorator(app)
+    assert oauth2._introspection_endpoint == 'https://issuer.local/oauth2/introspect'
+    assert oauth2._introspection_auth_method == 'client_secret_post'
+
+
+def test_introspection_setup_without_secret(test_app):
+    """ For using the introspection endpoint for validation
+    we also need a client secret.
+    """
+    app = test_app(meta_data=True)
+    app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
+    app.config['OAUTH2_CLIENT_ID'] = 'foo-client'
+    with pytest.raises(TypeError):
+        OAuth2Decorator(app)
+
+
+def test_introspection_setup_with_endpoint(test_app):
+    """ In case we specify an introspection endpoint
+    we don't need to look it up from the metadata endpoint.
+    But we need to look up the supported introspection auth
+    methods from the metadata endpoint.
+    """
+    # FIXME: 1 metadata request to validate auth method
+    app = test_app(meta_data=True)
+    app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
+    app.config['OAUTH2_CLIENT_ID'] = 'foo-client'
+    app.config['OAUTH2_CLIENT_SECRET'] = 'very-secure'
+    app.config['OAUTH2_OAUTH2_INTROSPECTION_ENDPOINT'] = 'https://issuer.local/oauth2/introspect'
+    oauth2 = OAuth2Decorator(app)
+    assert oauth2._introspection_endpoint == 'https://issuer.local/oauth2/introspect'
+    assert oauth2._introspection_auth_method == 'client_secret_post'

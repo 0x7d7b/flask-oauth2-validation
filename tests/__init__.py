@@ -54,6 +54,7 @@ def _was_requested(
     mock: requests_mock.Mocker,
     uri: str
 ):
+    # FIXME: instead of bool use an int to specify the number of invocations?
     for request_proxy in mock.request_history:
         if str(request_proxy) == uri:
             _test_logger.debug(f'Verified request: {uri}')
@@ -70,7 +71,12 @@ def _register_mock_addresses(
         mock.get(
             'https://issuer.local/oauth2/.well-known/oauth-authorization-server',
             json={
-                'jwks_uri': 'https://issuer.local/oauth2/keys'
+                'jwks_uri': 'https://issuer.local/oauth2/keys',
+                'introspection_endpoint': 'https://issuer.local/oauth2/introspect',
+                'introspection_endpoint_auth_methods_supported': [
+                    'client_secret_basic',
+                    'client_secret_post'
+                ]
             }
         )
     if jwks_uri:
