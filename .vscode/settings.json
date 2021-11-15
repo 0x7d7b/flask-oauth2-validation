@@ -3,4 +3,10 @@
   "python.linting.flake8Enabled": true,
   "python.linting.enabled": true,
   "python.languageServer": "Pylance",
+  "pytest.command": "python -m pytest",
+  "python.testing.pytestArgs": [
+    "tests"
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true
 }

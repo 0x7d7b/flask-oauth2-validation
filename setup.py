@@ -14,7 +14,8 @@ install_dependencies = [
 
 test_dependencies = [
     'pytest',
-    'flask'
+    'flask',
+    'requests-mock'
 ]
 
 setup(

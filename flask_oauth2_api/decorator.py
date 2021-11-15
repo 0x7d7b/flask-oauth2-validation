@@ -30,11 +30,13 @@ class OAuth2Decorator():
         app.config.setdefault('OAUTH2_CLIENT_SECRET', None)
         app.config.setdefault('OAUTH2_INTROSPECTION_ENDPOINT', None)
         app.config.setdefault('OAUTH2_INTROSPECTION_AUTH_METHOD', None)
+        app.config.setdefault('OAUTH2_AUDIENCE', None)
 
         # By default we assume that we validate JWT self-encoded tokens
         self._use_self_encoded_token = True
 
         self._issuer = None
+        self._audience = None
         self._jwks_uri = None
         self._jwks_update_interval = None
         self._jwks_last_update_timestamp = None
@@ -66,6 +68,11 @@ class OAuth2Decorator():
                     'OAUTH2_CLIENT_SECRET config property required'
                 )
 
+        # When the jwks_uri is specified we can save one
+        # authorization server metadata lookup request
+        if self._use_self_encoded_token:
+            self._jwks_uri = app.config.get('OAUTH2_JWKS_URI')
+
         # We are supposed to validate self encoded tokens
         # but don't have a pubkey and don't know the jwks_uri.
         # Then we need to retrieve it from the authorization
@@ -75,6 +82,7 @@ class OAuth2Decorator():
             self._jwks_uri = self._lookup_metadata('jwks_uri')
 
         if self._use_self_encoded_token:
+            self._audience = app.config.get('OAUTH2_AUDIENCE')
             self._lookup_keys()
             self._jwks_last_update_timestamp = time.time()
             self._jwt = JWT()
@@ -124,8 +132,7 @@ class OAuth2Decorator():
             metadata_uri = self._issuer + \
                 '/.well-known/oauth-authorization-server'
             self._logger.debug(
-                'Trying to contact authorization server metadata endpoint at',
-                metadata_uri,
+                f'Trying to contact authorization server metadata endpoint at {metadata_uri}',
             )
             response = requests.get(metadata_uri)
             if not response.status_code == 200:
@@ -150,8 +157,7 @@ class OAuth2Decorator():
     def _lookup_keys(self) -> dict:
         try:
             self._logger.debug(
-                'Trying to download public keys from authorization server at',
-                self._jwks_uri
+                f'Trying to download public keys from authorization server at {self._jwks_uri}'
             )
             response = requests.get(self._jwks_uri)
             if not response.status_code == 200:
@@ -246,9 +252,7 @@ class OAuth2Decorator():
         )
         if not response.status_code == 200:
             self._logger.error(
-                'Token introspection endpoint',
-                'returned unexpected status code:',
-                response.status_code
+                f'Token introspection endpoint returned unexpected status code: {response.status_code}'
             )
             return None
         token_information = response.json()
@@ -264,7 +268,7 @@ class OAuth2Decorator():
                 pubkey = jwk_from_dict(self._issuer_public_keys[key_id])
         if not pubkey:
             raise OAuth2Exception(
-                'Token signature invalid'
+                'Invalid token signature'
             )
         try:
             decoded = self._jwt.decode(
@@ -273,7 +277,13 @@ class OAuth2Decorator():
                 do_time_check=True
             )
             if 'iss' not in decoded or not self._issuer == decoded['iss']:
-                raise OAuth2Exception('Invalid issuer')
+                raise OAuth2Exception('Invalid token issuer')
+            if self._audience:
+                if ('aud' not in decoded
+                        or not self._audience == decoded['aud']):
+                    raise OAuth2Exception(
+                        'Invalid token audience'
+                    )
             return decoded
         except JWTDecodeError as decode_error:
             raise OAuth2Exception(str(decode_error))
