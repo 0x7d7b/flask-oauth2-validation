@@ -58,6 +58,8 @@ class OAuth2Decorator():
         self._jwks_uri = None
         self._jwt = None
 
+        self._cached_metadata = None
+
         # The only mandatory value is the issuer URI.
         # In case it is the only value we expect it to offer
         # Authorization Server Metadata support (RFC-8414).
@@ -163,18 +165,22 @@ class OAuth2Decorator():
         according to RFC-8414.
         """
         try:
-            metadata_uri = self._issuer + \
-                '/.well-known/oauth-authorization-server'
-            self._logger.debug(
-                f'Trying to contact authorization server metadata endpoint at {metadata_uri}',
-            )
-            response = requests.get(metadata_uri)
-            if not response.status_code == 200:
-                raise TypeError(
-                    'Cannot request authorization server metadata',
-                    response.status_code
+            if not self._cached_metadata:
+                metadata_uri = self._issuer + \
+                    '/.well-known/oauth-authorization-server'
+                self._logger.debug(
+                    f'Trying to contact authorization server metadata endpoint at {metadata_uri}',
                 )
-            metadata = response.json()
+                response = requests.get(metadata_uri)
+                if not response.status_code == 200:
+                    raise TypeError(
+                        'Cannot request authorization server metadata',
+                        response.status_code
+                    )
+                metadata = response.json()
+                self._cached_metadata = metadata
+            else:
+                metadata = self._cached_metadata
             if key in metadata:
                 return metadata[key]
             raise TypeError(

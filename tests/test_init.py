@@ -28,7 +28,7 @@ def test_issuer_only(test_app):
 
 
 def test_issuer_and_jwks_uri_configured(test_app):
-    """ The OAUTH2_ISSUER and OAUTH2_JWKS_URIconfig attribute have been set.
+    """ The OAUTH2_ISSUER and OAUTH2_JWKS_URI config attribute have been set.
     Thus we expect no authorization server metadata lookup to retrieve
     the jwks_uri. Only the jwks_uri should be requested to retrieve all
     public keys the authorization server uses.
@@ -43,10 +43,9 @@ def test_issuer_and_jwks_uri_configured(test_app):
 
 
 def test_issuer_and_jwks_refresh_configured(test_app):
-    """ The OAUTH2_ISSUER and OAUTH2_JWKS_URIconfig attribute have been set.
-    Thus we expect no authorization server metadata lookup to retrieve
-    the jwks_uri. Only the jwks_uri should be requested to retrieve all
-    public keys the authorization server uses.
+    """ A refresh interval has been set.
+    In that case we expect the last update timestamp and an executor
+    task to be initialized.
     """
     app = test_app(meta_data=True, jwks_uri=True)
     app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
@@ -69,7 +68,6 @@ def test_introspection_setup(test_app):
     endpoint from the authorization server metadata as well
     as the supported introspection endpoint auth methods.
     """
-    # FIXME: 2 metadata request: introspect endpoint and auth methods
     app = test_app(meta_data=True)
     app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
     app.config['OAUTH2_CLIENT_ID'] = 'foo-client'
@@ -99,7 +97,6 @@ def test_introspection_setup_with_endpoint(test_app):
     But we need to look up the supported introspection auth
     methods from the metadata endpoint.
     """
-    # FIXME: 1 metadata request to validate auth method
     app = test_app(meta_data=True)
     app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
     app.config['OAUTH2_CLIENT_ID'] = 'foo-client'
