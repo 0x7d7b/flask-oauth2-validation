@@ -40,6 +40,12 @@ def test_issuer_and_jwks_uri_configured(test_app):
     assert oauth2._issuer == 'https://issuer.local/oauth2'
     assert oauth2._jwks_uri == 'https://issuer.local/oauth2/keys'
     assert oauth2._issuer_public_keys == mocked_keys
+    assert not oauth2._client_id
+    assert not oauth2._client_secret
+    assert not oauth2._jwks_update_interval
+    assert not oauth2._executor
+    assert not oauth2._introspection_endpoint
+    assert not oauth2._introspection_auth_method
 
 
 def test_issuer_and_jwks_refresh_configured(test_app):
@@ -58,6 +64,10 @@ def test_issuer_and_jwks_refresh_configured(test_app):
     assert oauth2._jwks_update_interval == 1234
     assert oauth2._executor
     assert oauth2._jwks_last_update_timestamp
+    assert not oauth2._client_id
+    assert not oauth2._client_secret
+    assert not oauth2._introspection_endpoint
+    assert not oauth2._introspection_auth_method
 
 
 def test_introspection_setup(test_app):
