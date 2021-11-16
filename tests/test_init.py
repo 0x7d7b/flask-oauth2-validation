@@ -53,7 +53,7 @@ def test_issuer_and_jwks_refresh_configured(test_app):
     In that case we expect the last update timestamp and an executor
     task to be initialized.
     """
-    app = test_app(meta_data=True, jwks_uri=True)
+    app = test_app(jwks_uri=True)
     app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
     app.config['OAUTH2_JWKS_URI'] = 'https://issuer.local/oauth2/keys'
     app.config['OAUTH2_JWKS_UPDATE_INTERVAL'] = 1234
