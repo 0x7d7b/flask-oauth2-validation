@@ -32,17 +32,16 @@ class OAuth2Decorator():
         self._logger = logging.getLogger(__name__)
 
         app.config.setdefault('OAUTH2_ISSUER', None)
+        # FIXME: could be multiple audiences
+        app.config.setdefault('OAUTH2_AUDIENCE', None)
         app.config.setdefault('OAUTH2_JWKS_URI', None)
         app.config.setdefault('OAUTH2_JWKS_UPDATE_INTERVAL', None)
         app.config.setdefault('OAUTH2_CLIENT_ID', None)
         app.config.setdefault('OAUTH2_CLIENT_SECRET', None)
         app.config.setdefault('OAUTH2_INTROSPECTION_ENDPOINT', None)
         app.config.setdefault('OAUTH2_INTROSPECTION_AUTH_METHOD', None)
-        app.config.setdefault('OAUTH2_AUDIENCE', None)
 
-        # By default we assume that we validate JWT self-encoded tokens
-        self._use_self_encoded_token = True
-
+        self._jwt = None
         self._issuer = None
         self._audience = None
         self._jwks_uri = None
@@ -55,8 +54,6 @@ class OAuth2Decorator():
         self._client_secret = None
         self._introspection_endpoint = None
         self._introspection_auth_method = None
-        self._jwks_uri = None
-        self._jwt = None
 
         self._cached_metadata = None
 
@@ -68,7 +65,7 @@ class OAuth2Decorator():
         self._issuer = app.config.get('OAUTH2_ISSUER')
 
         # In case we have a client id we assume that we will use the
-        # introspect endpoint and that we use reference tokens.
+        # introspect endpoint.
         self._client_id = app.config.get('OAUTH2_CLIENT_ID')
         if self._client_id:
             self._use_self_encoded_token = False
@@ -78,54 +75,48 @@ class OAuth2Decorator():
                     'OAUTH2_CLIENT_SECRET config property required'
                 )
 
-        # When the jwks_uri is specified we can save one
-        # authorization server metadata lookup request
-        if self._use_self_encoded_token:
-            self._jwks_uri = app.config.get('OAUTH2_JWKS_URI')
+        # In case the authorization server does not support
+        # metadata endpoints we can specify the JWKS URI manually.
+        self._jwks_uri = app.config.get('OAUTH2_JWKS_URI')
 
         # We are supposed to validate self encoded tokens
         # but don't have a pubkey and don't know the jwks_uri.
         # Then we need to retrieve it from the authorization
         # metadata endpoint
-        if (self._use_self_encoded_token
-                and not self._jwks_uri):
+        if not self._jwks_uri:
             self._jwks_uri = self._lookup_metadata('jwks_uri')
 
-        if self._use_self_encoded_token:
+        # If an audience has been defined the JWT
+        # token 'aud' attribute will be validated
+        # against it
+        self._audience = app.config.get('OAUTH2_AUDIENCE')
 
-            # We use a self-encoded JWT token
+        # We're looking up the public keys from the
+        # authorization server and specifying the
+        # update interval to refresh the keys
+        # regularly during runtime (if set)
+        self._lookup_keys()
+        self._jwks_last_update_timestamp = time.time()
+        self._jwt = JWT()
+        self._jwks_update_interval = app.config.get(
+            'OAUTH2_JWKS_UPDATE_INTERVAL'
+        )
+        if self._jwks_update_interval:
+            self._executor = Executor(app, 'oauth2_jwks_update_task')
 
-            # If an audience has been defined the JWT
-            # token 'aud' attribute will be validated
-            # against it
-            self._audience = app.config.get('OAUTH2_AUDIENCE')
+        # In case we have a client_id and client_secret being set
+        # we can use the introspection endpoint.
+        if self._client_id and self._client_secret:
 
-            # We're looking up the public keys from the
-            # authorization server and specifying the
-            # update interval to refresh the keys
-            # regularly during runtime (if set)
-            self._lookup_keys()
-            self._jwks_last_update_timestamp = time.time()
-            self._jwt = JWT()
-            self._jwks_update_interval = app.config.get(
-                'OAUTH2_JWKS_UPDATE_INTERVAL'
-            )
-            if self._jwks_update_interval:
-                self._executor = Executor(app, 'oauth2_jwks_update_task')
-
-        else:
-
-            # We use reference tokens and no self-encoded tokens
-
-            # If an introspection endpoint has been configured
-            # we can skip the authorization server metadata
-            # request to retrieve an introspection endpoint uri
+            # We can provide an introspection endpoint in case
+            # the authorization server does not support metadata
+            # requests.
             self._introspection_endpoint = app.config.get(
                 'OAUTH2_INTROSPECTION_ENDPOINT'
             )
 
             # When we don't have an introspection endpoint configured
-            # we need to look it up from the metadata endpoint, first.
+            # we need to look it up from the metadata endpoint.
             if not self._introspection_endpoint:
                 self._introspection_endpoint = self._lookup_metadata(
                     'introspection_endpoint'
@@ -224,7 +215,7 @@ class OAuth2Decorator():
                 str(http_error)
             )
 
-    def _handle_token(self, scopes: list, fn, *args, **kwargs):
+    def _handle_token(self, introspect: bool, scopes: list, fn, *args, **kwargs):
         """ OAuth2 decorator logic which is being executed
         whenever a decorated view function gets invoked.
         """
@@ -242,7 +233,7 @@ class OAuth2Decorator():
                     'error': 'invalid_token',
                     'error_description': 'Bearer access token missing'
                 }), 401
-            if self._is_valid(token):
+            if self._is_valid(token, introspect, scopes):
                 return fn(*args, **kwargs)
             else:
                 return jsonify({
@@ -266,15 +257,16 @@ class OAuth2Decorator():
             return None
         return authorization_header.split(sep=' ')[1]
 
-    def _is_valid(self, token: str) -> bool:
-        if self._use_self_encoded_token:
-            # We already either have a static configured pubkey or
-            # we retrieved all possible pubkeys during init
-            return self._validate_jwt(token)
-        else:
-            # We use reference tokens that means we need
-            # to issue a request to the introspection endpoint
-            return self._request_introspection(token)
+    def _is_valid(self, token: str, introspect: bool, scopes: list) -> bool:
+        if introspect and (not self._client_id or not self._client_secret):
+            raise OAuth2Exception('Invalid configuration')
+        # First perform a local valiation
+        valid = self._validate_jwt(token, scopes)
+        if valid and introspect:
+            # Then in case introspection is required perform a
+            # remote validation in addition
+            valid &= self._request_introspection(token)
+        return valid
 
     def _request_introspection(self, token: str) -> bool:
         token_parameters = {
@@ -305,7 +297,7 @@ class OAuth2Decorator():
             return token_information
         return None
 
-    def _validate_jwt(self, token: str) -> bool:
+    def _validate_jwt(self, token: str, scopes: list) -> bool:
         pubkey = None
         if self._issuer_public_keys:
             key_id = self._lookup_key_id(token)
@@ -329,6 +321,11 @@ class OAuth2Decorator():
                     raise OAuth2Exception(
                         'Invalid token audience'
                     )
+            if scopes and ('scp' not in decoded
+                           or not set(scopes).issubset(decoded['scp'])):
+                raise OAuth2Exception(
+                    'Invalid scope'
+                )
             return decoded
         except JWTDecodeError as decode_error:
             raise OAuth2Exception(str(decode_error))
@@ -359,12 +356,18 @@ class OAuth2Decorator():
                     except TypeError as error:
                         self._logger.error(error)
 
-    def requires_token(self, scopes=[]):
+    def requires_token(self, introspect=False, scopes=[]):
         """ Decorates a flask view function to add OAuth2 support.
         """
         def decorator(fn):
             @wraps(fn)
             def decorated(*args, **kwargs):
-                return self._handle_token(scopes, fn, *args, **kwargs)
+                return self._handle_token(
+                    fn,
+                    scopes=scopes,
+                    introspect=introspect,
+                    *args,
+                    **kwargs
+                )
             return decorated
         return decorator

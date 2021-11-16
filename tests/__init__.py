@@ -58,7 +58,6 @@ def _was_requested(
     mock: requests_mock.Mocker,
     uri: str
 ):
-    # FIXME: instead of bool use an int to specify the number of invocations?
     for request_proxy in mock.request_history:
         if str(request_proxy) == uri:
             _test_logger.debug(f'Verified request: {uri}')
