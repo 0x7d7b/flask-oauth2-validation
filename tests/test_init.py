@@ -1,6 +1,6 @@
 from flask_oauth2_api import OAuth2Decorator
 import pytest
-from . import test_app, mocked_keys
+from .conftest import mocked_keys
 
 
 def test_missing_config(test_app):
@@ -88,7 +88,8 @@ def test_introspection_setup(test_app):
     assert oauth2._issuer_public_keys == mocked_keys
     assert oauth2._client_id == 'foo-client'
     assert oauth2._client_secret == 'very-secure'
-    assert oauth2._introspection_endpoint == 'https://issuer.local/oauth2/introspect'
+    assert oauth2._introspection_endpoint == \
+        'https://issuer.local/oauth2/introspect'
     assert oauth2._introspection_auth_method == 'client_secret_post'
 
 
@@ -113,12 +114,14 @@ def test_introspection_setup_with_endpoint(test_app):
     app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
     app.config['OAUTH2_CLIENT_ID'] = 'foo-client'
     app.config['OAUTH2_CLIENT_SECRET'] = 'very-secure'
-    app.config['OAUTH2_OAUTH2_INTROSPECTION_ENDPOINT'] = 'https://issuer.local/oauth2/introspect'
+    app.config['OAUTH2_OAUTH2_INTROSPECTION_ENDPOINT'] = \
+        'https://issuer.local/oauth2/introspect'
     oauth2 = OAuth2Decorator(app)
     assert oauth2._issuer == 'https://issuer.local/oauth2'
     assert oauth2._jwks_uri == 'https://issuer.local/oauth2/keys'
     assert oauth2._issuer_public_keys == mocked_keys
     assert oauth2._client_id == 'foo-client'
     assert oauth2._client_secret == 'very-secure'
-    assert oauth2._introspection_endpoint == 'https://issuer.local/oauth2/introspect'
+    assert oauth2._introspection_endpoint == \
+        'https://issuer.local/oauth2/introspect'
     assert oauth2._introspection_auth_method == 'client_secret_post'

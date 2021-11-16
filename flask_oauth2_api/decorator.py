@@ -160,7 +160,7 @@ class OAuth2Decorator():
                 metadata_uri = self._issuer + \
                     '/.well-known/oauth-authorization-server'
                 self._logger.debug(
-                    f'Trying to contact authorization server metadata endpoint at {metadata_uri}',
+                    f'Reading  metadata from {metadata_uri}',
                 )
                 response = requests.get(metadata_uri)
                 if not response.status_code == 200:
@@ -190,7 +190,7 @@ class OAuth2Decorator():
         """
         try:
             self._logger.debug(
-                f'Trying to download public keys from authorization server at {self._jwks_uri}'
+                f'Downloading public keys from {self._jwks_uri}'
             )
             response = requests.get(self._jwks_uri)
             if not response.status_code == 200:
@@ -289,7 +289,7 @@ class OAuth2Decorator():
         )
         if not response.status_code == 200:
             self._logger.error(
-                f'Token introspection endpoint returned unexpected status code: {response.status_code}'
+                f'Unexpected introspection status code: {response.status_code}'
             )
             return None
         token_information = response.json()
