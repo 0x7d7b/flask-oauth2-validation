@@ -215,10 +215,12 @@ class OAuth2Decorator():
                 str(http_error)
             )
 
-    def _handle_token(self, introspect: bool, scopes: list, fn, *args, **kwargs):
+    def _handle_token(self, fn, *args, **kwargs):
         """ OAuth2 decorator logic which is being executed
         whenever a decorated view function gets invoked.
         """
+        introspect = kwargs['introspect']
+        scopes = kwargs['scopes']
         try:
             if self._executor:
                 self._executor.submit(self._update_keys)
@@ -364,10 +366,12 @@ class OAuth2Decorator():
             def decorated(*args, **kwargs):
                 return self._handle_token(
                     fn,
-                    scopes=scopes,
-                    introspect=introspect,
                     *args,
-                    **kwargs
+                    **dict(
+                        kwargs,
+                        scopes=scopes,
+                        introspect=introspect
+                    )
                 )
             return decorated
         return decorator
