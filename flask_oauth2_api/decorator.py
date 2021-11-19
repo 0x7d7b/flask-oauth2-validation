@@ -357,11 +357,13 @@ class OAuth2Decorator():
                         'Invalid token audience'
                     )
             if scopes and 'scp' not in decoded:
-                raise OAuth2InsufficientScopeException(None)
+                raise OAuth2InsufficientScopeException(
+                    ' '.join(set(scopes))
+                )
             if scopes and not set(scopes).issubset(set(decoded['scp'])):
                 raise OAuth2InsufficientScopeException(
                     ' '.join(
-                        set(scopes).symmetric_difference(set(decoded['scp']))
+                        set(scopes).difference(set(decoded['scp']))
                     )
                 )
             return decoded
