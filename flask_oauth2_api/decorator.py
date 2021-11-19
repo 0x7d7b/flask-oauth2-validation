@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, request, make_response
 from flask_executor import Executor
 from functools import wraps
 from jwt import JWT, jwk_from_dict
@@ -18,9 +18,47 @@ class OAuth2Exception(BaseException):
     json error response.
     """
 
-    def __init__(self, error_message: str):
-        self.error = 'invalid_token'
+    def __init__(self, status_code: int, error: str, error_message: str):
+        self.status_code = status_code
+        self.error = error
         self.error_message = error_message
+
+    def response(self):
+        response = make_response()
+        del response.headers['Content-Type']
+        response.status_code = self.status_code
+        response.headers['WWW-Authenticate'] = ' '.join([
+            'Bearer',
+            'error="' + self.error + '"',
+            self._error_description()
+        ])
+        return response
+
+    def _error_description(self):
+        return 'error_description="' + self.error_message + '"'
+
+
+class OAuth2BadRequestException(OAuth2Exception):
+
+    def __init__(self, error_message: str):
+        super().__init__(400, 'invalid_request', error_message)
+
+
+class OAuth2InvalidTokenException(OAuth2Exception):
+
+    def __init__(self, error_message: str):
+        super().__init__(401, 'invalid_token', error_message)
+
+
+class OAuth2InsufficientScopeException(OAuth2Exception):
+
+    def __init__(self, missing_scope: str):
+        super().__init__(403, 'insufficient_scope', missing_scope)
+
+    def _error_description(self):
+        if self.error_message:
+            return 'scope="' + self.error_message + '"'
+        return None
 
 
 class OAuth2Decorator():
@@ -225,34 +263,29 @@ class OAuth2Decorator():
             if self._executor:
                 self._executor.submit(self._update_keys)
             if not request.headers.get('Authorization', None):
-                return jsonify({
-                    'error': 'invalid_token',
-                    'error_description': 'Authorization header missing'
-                }), 401
+                return OAuth2BadRequestException(
+                    'Authorization header missing'
+                ).response()
             token = self._extract_token(request.headers['Authorization'])
             if not token:
-                return jsonify({
-                    'error': 'invalid_token',
-                    'error_description': 'Bearer access token missing'
-                }), 401
+                return OAuth2BadRequestException(
+                    'Bearer access token missing'
+                ).response()
             if self._is_valid(token, introspect, scopes):
+                kwargs.pop('scopes', None)
+                kwargs.pop('introspect', None)
                 return fn(*args, **kwargs)
             else:
-                return jsonify({
-                    'error': 'invalid_token',
-                    'error_description': 'Invalid token'
-                }), 401
+                return OAuth2InvalidTokenException(
+                    'Invalid token'
+                ).response()
         except OAuth2Exception as oauth2_exception:
-            return jsonify({
-                'error': oauth2_exception.error,
-                'error_description': oauth2_exception.error_message
-            }), 401
+            return oauth2_exception.response()
         except BaseException as error:
             self._logger.error(str(error))
-            return jsonify({
-                'error': 'invalid_token',
-                'error_description': 'Token validation failed'
-            }), 401
+            return OAuth2InvalidTokenException(
+                'Token validation failed'
+            ).response()
 
     def _extract_token(self, authorization_header: str):
         if not authorization_header.startswith('Bearer '):
@@ -261,13 +294,13 @@ class OAuth2Decorator():
 
     def _is_valid(self, token: str, introspect: bool, scopes: list) -> bool:
         if introspect and (not self._client_id or not self._client_secret):
-            raise OAuth2Exception('Invalid configuration')
+            raise OAuth2InvalidTokenException('Invalid configuration')
         # First perform a local valiation
         valid = self._validate_jwt(token, scopes)
         if valid and introspect:
             # Then in case introspection is required perform a
             # remote validation in addition
-            valid &= self._request_introspection(token)
+            valid = valid and self._request_introspection(token)
         return valid
 
     def _request_introspection(self, token: str) -> bool:
@@ -306,7 +339,7 @@ class OAuth2Decorator():
             if key_id and key_id in self._issuer_public_keys:
                 pubkey = jwk_from_dict(self._issuer_public_keys[key_id])
         if not pubkey:
-            raise OAuth2Exception(
+            raise OAuth2InvalidTokenException(
                 'Invalid token signature'
             )
         try:
@@ -316,21 +349,24 @@ class OAuth2Decorator():
                 do_time_check=True
             )
             if 'iss' not in decoded or not self._issuer == decoded['iss']:
-                raise OAuth2Exception('Invalid token issuer')
+                raise OAuth2InvalidTokenException('Invalid token issuer')
             if self._audience:
                 if ('aud' not in decoded
                         or not self._audience == decoded['aud']):
-                    raise OAuth2Exception(
+                    raise OAuth2InvalidTokenException(
                         'Invalid token audience'
                     )
-            if scopes and ('scp' not in decoded
-                           or not set(scopes).issubset(decoded['scp'])):
-                raise OAuth2Exception(
-                    'Invalid scope'
+            if scopes and 'scp' not in decoded:
+                raise OAuth2InsufficientScopeException(None)
+            if scopes and not set(scopes).issubset(set(decoded['scp'])):
+                raise OAuth2InsufficientScopeException(
+                    ' '.join(
+                        set(scopes).symmetric_difference(set(decoded['scp']))
+                    )
                 )
             return decoded
         except JWTDecodeError as decode_error:
-            raise OAuth2Exception(str(decode_error))
+            raise OAuth2InvalidTokenException(str(decode_error))
 
     def _lookup_key_id(self, token: str) -> str:
         try:
@@ -341,7 +377,7 @@ class OAuth2Decorator():
             if jwt_header and 'kid' in jwt_header:
                 return jwt_header['kid']
         except BaseException:
-            raise OAuth2Exception('Invalid token format')
+            raise OAuth2BadRequestException('Invalid token format')
         return None
 
     def _update_keys(self):
