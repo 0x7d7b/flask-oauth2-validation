@@ -25,7 +25,7 @@ class OAuth2Exception(BaseException):
 
     def response(self):
         response = make_response()
-        del response.headers['Content-Type']
+        response.headers.pop('Content-Type', None)
         response.status_code = self.status_code
         response.headers['WWW-Authenticate'] = ' '.join([
             'Bearer',
@@ -352,7 +352,9 @@ class OAuth2Decorator():
                 do_time_check=True
             )
             if 'iss' not in decoded or not self._issuer == decoded['iss']:
-                raise OAuth2InvalidTokenException('Invalid token issuer')
+                raise OAuth2InvalidTokenException(
+                    'Invalid token issuer'
+                )
             if self._audience:
                 if ('aud' not in decoded
                         or not self._audience == decoded['aud']):
@@ -363,10 +365,11 @@ class OAuth2Decorator():
                 raise OAuth2InsufficientScopeException(
                     ' '.join(set(scopes))
                 )
-            if scopes and not set(scopes).issubset(set(decoded['scp'])):
+            decoded_scopes_set = set(decoded['scp'])
+            if scopes and not set(scopes).issubset(decoded_scopes_set):
                 raise OAuth2InsufficientScopeException(
                     ' '.join(
-                        set(scopes).difference(set(decoded['scp']))
+                        set(scopes).difference(decoded_scopes_set)
                     )
                 )
             self.token = decoded
