@@ -70,7 +70,6 @@ class OAuth2Decorator():
         self._logger = logging.getLogger(__name__)
 
         app.config.setdefault('OAUTH2_ISSUER', None)
-        # FIXME: could be multiple audiences
         app.config.setdefault('OAUTH2_AUDIENCE', None)
         app.config.setdefault('OAUTH2_JWKS_URI', None)
         app.config.setdefault('OAUTH2_JWKS_UPDATE_INTERVAL', None)
