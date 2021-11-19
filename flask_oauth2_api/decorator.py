@@ -79,7 +79,8 @@ class OAuth2Decorator():
         app.config.setdefault('OAUTH2_INTROSPECTION_ENDPOINT', None)
         app.config.setdefault('OAUTH2_INTROSPECTION_AUTH_METHOD', None)
 
-        # The current requests token
+        # Holds the current requests token in case
+        # the verification steps where all successful.
         self.token = None
 
         self._jwt = None
