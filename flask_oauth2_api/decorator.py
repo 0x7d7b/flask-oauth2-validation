@@ -330,11 +330,11 @@ class OAuth2Decorator():
             self._logger.error(
                 f'Unexpected introspection status code: {response.status_code}'
             )
-            return None
+            return False
         token_information = response.json()
-        if 'active' in token_information and token_information['active']:
-            return token_information
-        return None
+        if 'active' in token_information:
+            return token_information['active']
+        return False
 
     def _validate_jwt(self, token: str, scopes: list) -> bool:
         pubkey = None
