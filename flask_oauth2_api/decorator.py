@@ -358,7 +358,10 @@ class OAuth2Decorator():
                 )
             if self._audience:
                 if ('aud' not in decoded
-                        or not self._audience == decoded['aud']):
+                    or (type(self._audience) == dict
+                        and decoded['aud'] not in self._audience)
+                    or (type(self._audience) == str
+                        and not self._audience == decoded['aud'])):
                     raise OAuth2InvalidTokenException(
                         'Invalid token audience'
                     )
