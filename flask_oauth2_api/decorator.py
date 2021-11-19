@@ -79,6 +79,9 @@ class OAuth2Decorator():
         app.config.setdefault('OAUTH2_INTROSPECTION_ENDPOINT', None)
         app.config.setdefault('OAUTH2_INTROSPECTION_AUTH_METHOD', None)
 
+        # The current requests token
+        self.token = None
+
         self._jwt = None
         self._issuer = None
         self._audience = None
@@ -366,6 +369,7 @@ class OAuth2Decorator():
                         set(scopes).difference(set(decoded['scp']))
                     )
                 )
+            self.token = decoded
             return decoded
         except JWTDecodeError as decode_error:
             raise OAuth2InvalidTokenException(str(decode_error))
