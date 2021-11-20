@@ -33,6 +33,8 @@ def test_missing_introspection_metadata(test_app):
     with pytest.raises(TypeError) as err:
         test_app.config['OAUTH2_ISSUER'] = \
             'https://missing_introspection.issuer.local/oauth2'
+        test_app.config['OAUTH2_CLIENT_ID'] = 'foo-client'
+        test_app.config['OAUTH2_CLIENT_SECRET'] = 'very-secure'
         OAuth2Decorator(test_app)
     assert str(err.value) == \
         'Cannot request authorization server metadata: ' + \
@@ -44,6 +46,8 @@ def test_missing_introspection_auth_metadata(test_app):
     with pytest.raises(TypeError) as err:
         test_app.config['OAUTH2_ISSUER'] = \
             'https://missing_introspection_auth.issuer.local/oauth2'
+        test_app.config['OAUTH2_CLIENT_ID'] = 'foo-client'
+        test_app.config['OAUTH2_CLIENT_SECRET'] = 'very-secure'
         OAuth2Decorator(test_app)
     assert str(err.value) == \
         'Cannot request authorization server metadata: ' + \
