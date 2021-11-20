@@ -1,5 +1,4 @@
 from flask import Flask
-
 import pytest
 import requests_mock
 
