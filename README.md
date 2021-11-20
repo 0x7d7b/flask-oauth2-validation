@@ -5,7 +5,7 @@
 # Test
 
     pip install -e .[test]
-    python -m pytest
+    pytest --cov=flask_oauth2_api
 
 # TODO
 

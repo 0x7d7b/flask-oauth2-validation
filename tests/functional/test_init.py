@@ -1,6 +1,6 @@
 from flask_oauth2_api import OAuth2Decorator
 import pytest
-from .conftest import mocked_keys
+from . import mocked_keys
 
 
 def test_missing_config(test_app):
