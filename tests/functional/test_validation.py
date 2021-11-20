@@ -347,6 +347,23 @@ def test_expired_token(test_app):
     _expect_invalid_token(response, 'JWT Expired')
 
 
+def test_invalid_token_unknown_pubkey(test_app):
+
+    test_client = _expect_requires_token(
+        test_app,
+        issuer='https://unknown_pubkey.issuer.local/oauth2'
+    )
+
+    response = test_client.get('/', headers={
+        'Authorization': 'Bearer ' + generate_test_token({
+            'iss': 'https://unknown_pubkey.issuer.local/oauth2',
+            'aud': 'api://default',
+        })
+    })
+
+    _expect_invalid_token(response, 'Invalid token signature')
+
+
 # TODO: tests for:
 # - expired tokens,
 # - tokens with invalid signature,
