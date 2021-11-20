@@ -257,6 +257,23 @@ def test_valid_token_introspected_basic(test_app):
     _expect_valid_token(response)
 
 
+def test_valid_token_introspected_unknown_auth(test_app):
+
+    test_app.config['OAUTH2_CLIENT_ID'] = 'foo'
+    test_app.config['OAUTH2_CLIENT_SECRET'] = 'bar'
+
+    with pytest.raises(TypeError) as error:
+
+        _expect_requires_token(
+            test_app,
+            introspect=True,
+            issuer='https://unknown_introspection_auth.issuer.local/oauth2'
+        )
+
+        assert str(error.value) == \
+            'The introspection auth methods are not supported: client_secret_unknown'
+
+
 def test_invalid_token_introspection_error(test_app):
 
     test_app.config['OAUTH2_CLIENT_ID'] = 'foo'
