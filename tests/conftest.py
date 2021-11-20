@@ -53,6 +53,13 @@ def _was_requested(
 def _register_mock_addresses(
     mock: requests_mock.Mocker
 ):
+
+    mock.get(
+        'https://unsupported.issuer.local/oauth2' +
+        '/.well-known/oauth-authorization-server',
+        status_code=404
+    )
+
     mock.get(
         'https://issuer.local/oauth2' +
         '/.well-known/oauth-authorization-server',
@@ -67,6 +74,7 @@ def _register_mock_addresses(
             ]
         }
     )
+
     mock.get(
         'https://issuer.local/oauth2/keys',
         json={

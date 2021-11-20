@@ -4,8 +4,18 @@ from . import mocked_keys
 
 
 def test_missing_config(test_app):
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError) as err:
         OAuth2Decorator(test_app)
+    assert str(err.value) == 'An OAUTH2_ISSUER config property is required'
+
+
+def test_no_metadata_support(test_app):
+    with pytest.raises(TypeError) as err:
+        test_app.config['OAUTH2_ISSUER'] = \
+            'https://unsupported.issuer.local/oauth2'
+        OAuth2Decorator(test_app)
+    assert str(err.value) == \
+        'Cannot request authorization server metadata: 404'
 
 
 def test_local_validation(test_app):
@@ -73,10 +83,8 @@ def test_remote_validation_with_pubkey_reload(test_app):
 
 
 def test_introspection_setup_without_secret(test_app):
-    """ For using the introspection endpoint for validation
-    we also need a client secret.
-    """
     test_app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
     test_app.config['OAUTH2_CLIENT_ID'] = 'foo-client'
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError) as err:
         OAuth2Decorator(test_app)
+    assert str(err.value) == 'OAUTH2_CLIENT_SECRET config property required'

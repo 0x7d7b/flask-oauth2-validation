@@ -143,10 +143,9 @@ class OAuth2Decorator():
 
             # We need to look up the introspection endpoint from
             # the authorization server metadata.
-            if not self._introspection_endpoint:
-                self._introspection_endpoint = self._lookup_metadata(
-                    'introspection_endpoint'
-                )
+            self._introspection_endpoint = self._lookup_metadata(
+                'introspection_endpoint'
+            )
 
             # Determine the auth method the introspection endpoint
             # supports (basic or post are implemented so far):
@@ -159,7 +158,7 @@ class OAuth2Decorator():
                 self._introspection_auth_method = 'client_secret_basic'
             else:
                 raise TypeError(
-                    'The introspection auth methods are not implemented:',
+                    'The introspection auth methods are not implemented: ' +
                     server_supported_auth_methods
                 )
 
@@ -177,8 +176,7 @@ class OAuth2Decorator():
                 response = requests.get(metadata_uri)
                 if not response.status_code == 200:
                     raise TypeError(
-                        'Cannot request authorization server metadata',
-                        response.status_code
+                        str(response.status_code)
                     )
                 metadata = response.json()
                 self._cached_metadata = metadata
@@ -187,13 +185,13 @@ class OAuth2Decorator():
             if key in metadata:
                 return metadata[key]
             raise TypeError(
-                'No attribute',
-                key,
-                'found in authorization server metadata'
+                'No attribute ' +
+                key +
+                ' found in authorization server metadata'
             )
         except BaseException as http_error:
             raise TypeError(
-                'Cannot request authorization server metadata:',
+                'Cannot request authorization server metadata: ' +
                 str(http_error)
             )
 
@@ -207,8 +205,9 @@ class OAuth2Decorator():
             response = requests.get(self._jwks_uri)
             if not response.status_code == 200:
                 raise TypeError(
-                    'Cannot request public keys from',
-                    self._jwks_uri,
+                    'Cannot request public keys from ' +
+                    self._jwks_uri +
+                    ': ' +
                     response.status_code
                 )
             jwks_metadata = response.json()
@@ -221,9 +220,9 @@ class OAuth2Decorator():
                 self._issuer_public_keys = retrieved_keys
         except BaseException as http_error:
             raise TypeError(
-                'Cannot request public keys from ',
-                self._jwks_uri,
-                ':',
+                'Cannot request public keys from ' +
+                self._jwks_uri +
+                ': ' +
                 str(http_error)
             )
 
