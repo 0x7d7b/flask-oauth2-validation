@@ -9,8 +9,7 @@ def test_missing_config(test_app):
     attribute has been provided.
     """
     with pytest.raises(TypeError):
-        app = test_app()
-        OAuth2Decorator(app)
+        OAuth2Decorator(test_app)
 
 
 def test_issuer_only(test_app):
@@ -19,9 +18,8 @@ def test_issuer_only(test_app):
     the jwks_uri. Next the jwks_uri should be requested to retrieve all
     public keys the authorization server uses.
     """
-    app = test_app(meta_data=True, jwks_uri=True)
-    app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
-    oauth2 = OAuth2Decorator(app)
+    test_app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
+    oauth2 = OAuth2Decorator(test_app)
     assert oauth2._issuer == 'https://issuer.local/oauth2'
     assert oauth2._jwks_uri == 'https://issuer.local/oauth2/keys'
     assert oauth2._issuer_public_keys == mocked_keys
@@ -33,10 +31,9 @@ def test_issuer_and_jwks_uri_configured(test_app):
     the jwks_uri. Only the jwks_uri should be requested to retrieve all
     public keys the authorization server uses.
     """
-    app = test_app(jwks_uri=True)
-    app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
-    app.config['OAUTH2_JWKS_URI'] = 'https://issuer.local/oauth2/keys'
-    oauth2 = OAuth2Decorator(app)
+    test_app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
+    test_app.config['OAUTH2_JWKS_URI'] = 'https://issuer.local/oauth2/keys'
+    oauth2 = OAuth2Decorator(test_app)
     assert oauth2._issuer == 'https://issuer.local/oauth2'
     assert oauth2._jwks_uri == 'https://issuer.local/oauth2/keys'
     assert oauth2._issuer_public_keys == mocked_keys
@@ -53,11 +50,10 @@ def test_issuer_and_jwks_refresh_configured(test_app):
     In that case we expect the last update timestamp and an executor
     task to be initialized.
     """
-    app = test_app(jwks_uri=True)
-    app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
-    app.config['OAUTH2_JWKS_URI'] = 'https://issuer.local/oauth2/keys'
-    app.config['OAUTH2_JWKS_UPDATE_INTERVAL'] = 1234
-    oauth2 = OAuth2Decorator(app)
+    test_app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
+    test_app.config['OAUTH2_JWKS_URI'] = 'https://issuer.local/oauth2/keys'
+    test_app.config['OAUTH2_JWKS_UPDATE_INTERVAL'] = 1234
+    oauth2 = OAuth2Decorator(test_app)
     assert oauth2._issuer == 'https://issuer.local/oauth2'
     assert oauth2._jwks_uri == 'https://issuer.local/oauth2/keys'
     assert oauth2._issuer_public_keys == mocked_keys
@@ -78,11 +74,10 @@ def test_introspection_setup(test_app):
     endpoint from the authorization server metadata as well
     as the supported introspection endpoint auth methods.
     """
-    app = test_app(meta_data=True, jwks_uri=True)
-    app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
-    app.config['OAUTH2_CLIENT_ID'] = 'foo-client'
-    app.config['OAUTH2_CLIENT_SECRET'] = 'very-secure'
-    oauth2 = OAuth2Decorator(app)
+    test_app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
+    test_app.config['OAUTH2_CLIENT_ID'] = 'foo-client'
+    test_app.config['OAUTH2_CLIENT_SECRET'] = 'very-secure'
+    oauth2 = OAuth2Decorator(test_app)
     assert oauth2._issuer == 'https://issuer.local/oauth2'
     assert oauth2._jwks_uri == 'https://issuer.local/oauth2/keys'
     assert oauth2._issuer_public_keys == mocked_keys
@@ -97,11 +92,10 @@ def test_introspection_setup_without_secret(test_app):
     """ For using the introspection endpoint for validation
     we also need a client secret.
     """
-    app = test_app(meta_data=True, jwks_uri=True)
-    app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
-    app.config['OAUTH2_CLIENT_ID'] = 'foo-client'
+    test_app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
+    test_app.config['OAUTH2_CLIENT_ID'] = 'foo-client'
     with pytest.raises(TypeError):
-        OAuth2Decorator(app)
+        OAuth2Decorator(test_app)
 
 
 def test_introspection_setup_with_endpoint(test_app):
@@ -110,13 +104,12 @@ def test_introspection_setup_with_endpoint(test_app):
     But we need to look up the supported introspection auth
     methods from the metadata endpoint.
     """
-    app = test_app(meta_data=True, jwks_uri=True)
-    app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
-    app.config['OAUTH2_CLIENT_ID'] = 'foo-client'
-    app.config['OAUTH2_CLIENT_SECRET'] = 'very-secure'
-    app.config['OAUTH2_OAUTH2_INTROSPECTION_ENDPOINT'] = \
+    test_app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
+    test_app.config['OAUTH2_CLIENT_ID'] = 'foo-client'
+    test_app.config['OAUTH2_CLIENT_SECRET'] = 'very-secure'
+    test_app.config['OAUTH2_OAUTH2_INTROSPECTION_ENDPOINT'] = \
         'https://issuer.local/oauth2/introspect'
-    oauth2 = OAuth2Decorator(app)
+    oauth2 = OAuth2Decorator(test_app)
     assert oauth2._issuer == 'https://issuer.local/oauth2'
     assert oauth2._jwks_uri == 'https://issuer.local/oauth2/keys'
     assert oauth2._issuer_public_keys == mocked_keys

@@ -2,9 +2,8 @@ from flask_oauth2_api import OAuth2Decorator
 from flask import Flask, jsonify
 
 
-def _expect_requires_token(test_app, introspect=False, scopes=[]):
+def _expect_requires_token(app: Flask, introspect=False, scopes=[]):
 
-    app: Flask = test_app(meta_data=True, jwks_uri=True)
     app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
 
     oauth2 = OAuth2Decorator(app)
@@ -19,7 +18,7 @@ def _expect_requires_token(test_app, introspect=False, scopes=[]):
             'token': oauth2.token
         }), 200
 
-    return app.test_client(), oauth2
+    return app.test_client()
 
 
 def _expect_invalid_request(response, msg):
@@ -27,13 +26,14 @@ def _expect_invalid_request(response, msg):
     assert 400 == response.status_code
 
     assert response.headers['WWW-Authenticate']
-    assert 'Bearer error="invalid_request" ' + \
+    assert 'Bearer ' + \
+        'error="invalid_request" ' + \
         'error_description="'+msg+'"' \
         == response.headers['WWW-Authenticate']
 
 
 def test_request_without_headers(test_app):
-    test_client, _ = _expect_requires_token(test_app)
+    test_client = _expect_requires_token(test_app)
 
     response = test_client.get('/')
 
@@ -42,7 +42,7 @@ def test_request_without_headers(test_app):
 
 def test_request_with_empty_authorization_header(test_app):
 
-    test_client, _ = _expect_requires_token(test_app)
+    test_client = _expect_requires_token(test_app)
 
     response = test_client.get('/', headers={
         'Authorization': ''
@@ -53,7 +53,7 @@ def test_request_with_empty_authorization_header(test_app):
 
 def test_request_missing_token(test_app):
 
-    test_client, _ = _expect_requires_token(test_app)
+    test_client = _expect_requires_token(test_app)
 
     response = test_client.get('/', headers={
         'Authorization': 'Bearer'
@@ -64,7 +64,7 @@ def test_request_missing_token(test_app):
 
 def test_request_wrong_auth(test_app):
 
-    test_client, _ = _expect_requires_token(test_app)
+    test_client = _expect_requires_token(test_app)
 
     response = test_client.get('/', headers={
         'Authorization': 'Basic asdfasdfasdf'
@@ -75,7 +75,7 @@ def test_request_wrong_auth(test_app):
 
 def test_request_wrong_syntax(test_app):
 
-    test_client, _ = _expect_requires_token(test_app)
+    test_client = _expect_requires_token(test_app)
 
     response = test_client.get('/', headers={
         'Authorization': 'Bearer fooooobaaaar'
