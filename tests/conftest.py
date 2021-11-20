@@ -216,13 +216,13 @@ def _register_mock_addresses(
     )
 
     mock.get(
-        'https://unknown_introspection_auth.issuer.local/oauth2' +
+        'https://unknown_auth.issuer.local/oauth2' +
         '/.well-known/oauth-authorization-server',
         json={
             'jwks_uri':
                 'https://issuer.local/oauth2/keys',
             'introspection_endpoint':
-                'https://unknown_introspection_auth.issuer.local/oauth2/introspect',
+                'https://unknown_auth.issuer.local/oauth2/introspect',
             'introspection_endpoint_auth_methods_supported': [
                 'client_secret_unknown'
             ]

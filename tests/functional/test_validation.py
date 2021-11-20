@@ -281,7 +281,7 @@ def test_valid_token_introspected_unknown_auth(test_app):
         _expect_requires_token(
             test_app,
             introspect=True,
-            issuer='https://unknown_introspection_auth.issuer.local/oauth2'
+            issuer='https://unknown_auth.issuer.local/oauth2'
         )
 
         assert str(error.value) == \
@@ -412,9 +412,13 @@ def test_valid_token_with_pubkey_refresh(test_app):
     })
 
     _expect_valid_token(second_response_caused_pubkey_reload)
+    
+    # Wait for the async key update to finish
+    sleep(0.5)
 
 
 # TODO: tests for:
+# - tokens should be verified correctly even if no kid in header (?)
 # - tokens with invalid signature,
 # - token with invalid base64 header (keyid lookup)
 # - key update executor
