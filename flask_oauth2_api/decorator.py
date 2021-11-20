@@ -292,7 +292,7 @@ class OAuth2Decorator():
                 base64.encode(self._client_id + ':' + self._client_secret)
         response = requests.post(
             url=self._introspection_endpoint,
-            params=token_parameters,
+            data=token_parameters,
             headers=token_headers
         )
         if not response.status_code == 200:

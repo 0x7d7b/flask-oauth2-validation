@@ -1,11 +1,17 @@
 from flask_oauth2_api import OAuth2Decorator
 from flask import Flask, jsonify
 from . import generate_test_token
+from jwt.jwk import OctetJWK
 
 
-def _expect_requires_token(app: Flask, introspect=False, scopes=[]):
+def _expect_requires_token(
+    app: Flask,
+    introspect=False,
+    scopes=[],
+    issuer='https://issuer.local/oauth2'
+):
 
-    app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
+    app.config['OAUTH2_ISSUER'] = issuer
 
     oauth2 = OAuth2Decorator(app)
 
@@ -24,6 +30,28 @@ def _expect_requires_token(app: Flask, introspect=False, scopes=[]):
 
 def _expect_valid_token(response):
     assert 200 == response.status_code
+
+
+def _expect_insufficient_scope(response, msg):
+
+    assert 403 == response.status_code
+
+    assert response.headers['WWW-Authenticate']
+    assert 'Bearer ' + \
+        'error="insufficient_scope" ' + \
+        'scope="'+msg+'"' \
+        == response.headers['WWW-Authenticate']
+
+
+def _expect_invalid_token(response, msg):
+
+    assert 401 == response.status_code
+
+    assert response.headers['WWW-Authenticate']
+    assert 'Bearer ' + \
+        'error="invalid_token" ' + \
+        'error_description="'+msg+'"' \
+        == response.headers['WWW-Authenticate']
 
 
 def _expect_invalid_request(response, msg):
@@ -97,10 +125,121 @@ def test_valid_token(test_app):
         'Authorization': 'Bearer ' + generate_test_token({
             'iss': 'https://issuer.local/oauth2',
             'aud': 'api://default',
-            'foo': 'bar'
         })
     })
-    
-    print(response.headers)
 
     _expect_valid_token(response)
+
+
+def test_invalid_audience(test_app: Flask):
+
+    test_app.config['OAUTH2_AUDIENCE'] = 'api://default'
+
+    test_client = _expect_requires_token(test_app)
+
+    response = test_client.get('/', headers={
+        'Authorization': 'Bearer ' + generate_test_token({
+            'iss': 'https://issuer.local/oauth2',
+            'aud': 'non-matching-audience',
+        })
+    })
+
+    _expect_invalid_token(response, 'Invalid token audience')
+
+
+def test_invalid_issuer(test_app: Flask):
+
+    test_client = _expect_requires_token(test_app)
+
+    response = test_client.get('/', headers={
+        'Authorization': 'Bearer ' + generate_test_token({
+            'iss': 'other-issuer',
+        })
+    })
+
+    _expect_invalid_token(response, 'Invalid token issuer')
+
+
+def test_valid_token_with_scopes(test_app):
+
+    test_client = _expect_requires_token(test_app, scopes=['foo', 'bar'])
+
+    response = test_client.get('/', headers={
+        'Authorization': 'Bearer ' + generate_test_token({
+            'iss': 'https://issuer.local/oauth2',
+            'aud': 'api://default',
+            'scp': ['foo', 'bar']
+        })
+    })
+
+    _expect_valid_token(response)
+
+
+def test_valid_token_missing_scope(test_app):
+
+    test_client = _expect_requires_token(test_app, scopes=['foo', 'bar'])
+
+    response = test_client.get('/', headers={
+        'Authorization': 'Bearer ' + generate_test_token({
+            'iss': 'https://issuer.local/oauth2',
+            'aud': 'api://default',
+            'scp': ['foo']
+        })
+    })
+
+    _expect_insufficient_scope(response, 'bar')
+
+
+def test_valid_token_introspected(test_app):
+
+    test_app.config['OAUTH2_CLIENT_ID'] = 'foo'
+    test_app.config['OAUTH2_CLIENT_SECRET'] = 'bar'
+
+    test_client = _expect_requires_token(
+        test_app,
+        introspect=True
+    )
+
+    response = test_client.get('/', headers={
+        'Authorization': 'Bearer ' + generate_test_token({
+            'iss': 'https://issuer.local/oauth2',
+        })
+    })
+
+    _expect_valid_token(response)
+
+
+def test_invalid_token_introspected(test_app):
+
+    test_app.config['OAUTH2_CLIENT_ID'] = 'foo'
+    test_app.config['OAUTH2_CLIENT_SECRET'] = 'bar'
+
+    test_client = _expect_requires_token(
+        test_app,
+        introspect=True,
+        issuer='https://invalid_introspection.issuer.local/oauth2'
+    )
+
+    response = test_client.get('/', headers={
+        'Authorization': 'Bearer ' + generate_test_token({
+            'iss': 'https://invalid_introspection.issuer.local/oauth2',
+        })
+    })
+
+    _expect_invalid_token(response, 'Invalid token')
+
+
+def test_introspect_config_missing(test_app):
+
+    test_client = _expect_requires_token(
+        test_app,
+        introspect=True
+    )
+
+    response = test_client.get('/', headers={
+        'Authorization': 'Bearer ' + generate_test_token({
+            'iss': 'https://issuer.local/oauth2',
+        })
+    })
+
+    _expect_invalid_token(response, 'Invalid configuration')
