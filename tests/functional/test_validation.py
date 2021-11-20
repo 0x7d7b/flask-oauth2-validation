@@ -412,7 +412,7 @@ def test_valid_token_with_pubkey_refresh(test_app):
     })
 
     _expect_valid_token(second_response_caused_pubkey_reload)
-    
+
     # Wait for the async key update to finish
     sleep(0.5)
 
