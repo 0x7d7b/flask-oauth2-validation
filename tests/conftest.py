@@ -112,12 +112,6 @@ def _register_mock_addresses(
         json={
             'jwks_uri':
                 'https://key_lookup_error.issuer.local/oauth2/keys',
-            'introspection_endpoint':
-                'https://key_lookup_error.issuer.local/oauth2/introspect',
-            'introspection_endpoint_auth_methods_supported': [
-                'client_secret_basic',
-                'client_secret_post'
-            ]
         }
     )
 
@@ -202,11 +196,6 @@ def _register_mock_addresses(
         json={
             'jwks_uri':
                 'https://unknown_pubkey.issuer.local/oauth2/keys',
-            'introspection_endpoint':
-                'https://unknown_pubkey.issuer.local/oauth2/introspect',
-            'introspection_endpoint_auth_methods_supported': [
-                'client_secret_post'
-            ]
         }
     )
 
