@@ -18,6 +18,39 @@ def test_no_metadata_support(test_app):
         'Cannot request authorization server metadata: 404'
 
 
+def test_missing_jwks_metadata(test_app):
+    with pytest.raises(TypeError) as err:
+        test_app.config['OAUTH2_ISSUER'] = \
+            'https://missing_jwks.issuer.local/oauth2'
+        OAuth2Decorator(test_app)
+    assert str(err.value) == \
+        'Cannot request authorization server metadata: ' + \
+        'No attribute jwks_uri found in authorization ' + \
+        'server metadata'
+
+
+def test_missing_introspection_metadata(test_app):
+    with pytest.raises(TypeError) as err:
+        test_app.config['OAUTH2_ISSUER'] = \
+            'https://missing_introspection.issuer.local/oauth2'
+        OAuth2Decorator(test_app)
+    assert str(err.value) == \
+        'Cannot request authorization server metadata: ' + \
+        'No attribute introspection_endpoint found in ' + \
+        'authorization server metadata'
+
+
+def test_missing_introspection_auth_metadata(test_app):
+    with pytest.raises(TypeError) as err:
+        test_app.config['OAUTH2_ISSUER'] = \
+            'https://missing_introspection_auth.issuer.local/oauth2'
+        OAuth2Decorator(test_app)
+    assert str(err.value) == \
+        'Cannot request authorization server metadata: ' + \
+        'No attribute introspection_endpoint_auth_methods_supported ' + \
+        'found in authorization server metadata'
+
+
 def test_local_validation(test_app):
     test_app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
     oauth2 = OAuth2Decorator(test_app)

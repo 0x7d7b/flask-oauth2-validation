@@ -61,6 +61,43 @@ def _register_mock_addresses(
     )
 
     mock.get(
+        'https://missing_jwks.issuer.local/oauth2' +
+        '/.well-known/oauth-authorization-server',
+        json={
+            'introspection_endpoint':
+                'https://issuer.local/oauth2/introspect',
+            'introspection_endpoint_auth_methods_supported': [
+                'client_secret_basic',
+                'client_secret_post'
+            ]
+        }
+    )
+
+    mock.get(
+        'https://missing_introspection.issuer.local/oauth2' +
+        '/.well-known/oauth-authorization-server',
+        json={
+            'jwks_uri':
+                'https://issuer.local/oauth2/keys',
+            'introspection_endpoint_auth_methods_supported': [
+                'client_secret_basic',
+                'client_secret_post'
+            ]
+        }
+    )
+
+    mock.get(
+        'https://missing_introspection_auth.issuer.local/oauth2' +
+        '/.well-known/oauth-authorization-server',
+        json={
+            'jwks_uri':
+                'https://issuer.local/oauth2/keys',
+            'introspection_endpoint':
+                'https://issuer.local/oauth2/introspect',
+        }
+    )
+
+    mock.get(
         'https://issuer.local/oauth2' +
         '/.well-known/oauth-authorization-server',
         json={
