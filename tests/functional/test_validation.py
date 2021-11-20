@@ -1,6 +1,7 @@
 import pytest
 from flask import Flask, jsonify
 from flask_oauth2_api import OAuth2Decorator
+from time import sleep
 
 from . import generate_test_token
 
@@ -141,7 +142,6 @@ def test_valid_token(test_app):
     response = test_client.get('/', headers={
         'Authorization': 'Bearer ' + generate_test_token({
             'iss': 'https://issuer.local/oauth2',
-            'aud': 'api://default',
         })
     })
 
@@ -198,7 +198,6 @@ def test_valid_token_with_scopes(test_app):
     response = test_client.get('/', headers={
         'Authorization': 'Bearer ' + generate_test_token({
             'iss': 'https://issuer.local/oauth2',
-            'aud': 'api://default',
             'scp': ['foo', 'bar']
         })
     })
@@ -213,7 +212,6 @@ def test_valid_token_missing_scope(test_app):
     response = test_client.get('/', headers={
         'Authorization': 'Bearer ' + generate_test_token({
             'iss': 'https://issuer.local/oauth2',
-            'aud': 'api://default',
             'scp': ['foo']
         })
     })
@@ -228,7 +226,6 @@ def test_valid_token_no_scopes(test_app):
     response = test_client.get('/', headers={
         'Authorization': 'Bearer ' + generate_test_token({
             'iss': 'https://issuer.local/oauth2',
-            'aud': 'api://default'
         })
     })
 
@@ -392,8 +389,32 @@ def test_decorated_method_raises_exception(test_app):
     _expect_internal_server_error(response, 'Exception from decorated method')
 
 
+def test_valid_token_with_pubkey_refresh(test_app):
+
+    test_app.config['OAUTH2_JWKS_UPDATE_INTERVAL'] = 1
+
+    test_client = _expect_requires_token(test_app)
+
+    first_response = test_client.get('/', headers={
+        'Authorization': 'Bearer ' + generate_test_token({
+            'iss': 'https://issuer.local/oauth2',
+        })
+    })
+
+    _expect_valid_token(first_response)
+
+    sleep(1.2)
+
+    second_response_caused_pubkey_reload = test_client.get('/', headers={
+        'Authorization': 'Bearer ' + generate_test_token({
+            'iss': 'https://issuer.local/oauth2',
+        })
+    })
+
+    _expect_valid_token(second_response_caused_pubkey_reload)
+
+
 # TODO: tests for:
-# - expired tokens,
 # - tokens with invalid signature,
 # - token with invalid base64 header (keyid lookup)
 # - key update executor

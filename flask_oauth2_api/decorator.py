@@ -104,7 +104,6 @@ class OAuth2Decorator():
         # introspect endpoint.
         self._client_id = app.config.get('OAUTH2_CLIENT_ID')
         if self._client_id:
-            self._use_self_encoded_token = False
             self._client_secret = app.config.get('OAUTH2_CLIENT_SECRET')
             if not self._client_secret:
                 raise TypeError(
@@ -367,8 +366,7 @@ class OAuth2Decorator():
             raise OAuth2BadRequestException('Invalid token format')
 
     def _update_keys(self):
-        if (self._use_self_encoded_token
-            and self._jwks_update_interval
+        if (self._jwks_update_interval
                 and self._jwks_last_update_timestamp):
             with self._jwks_update_mutex:
                 now = time.time()
