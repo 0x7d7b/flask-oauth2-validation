@@ -39,6 +39,14 @@ def _expect_requires_token(
     def raise_me():
         raise Exception('Exception from decorated method')
 
+    @app.route('/fail')
+    @oauth2.requires_token(
+        introspect=introspect,
+        scopes=scopes
+    )
+    def fail_validatin():
+        raise BaseException('Raised base exception')
+
     return app.test_client()
 
 
@@ -403,6 +411,19 @@ def test_decorated_method_raises_exception(test_app):
     })
 
     _expect_internal_server_error(response, 'Exception from decorated method')
+
+
+def test_decorated_method_raises_base_exception(test_app):
+
+    test_client = _expect_requires_token(test_app)
+
+    response = test_client.get('/fail', headers={
+        'Authorization': 'Bearer ' + generate_test_token({
+            'iss': 'https://issuer.local/oauth2'
+        })
+    })
+
+    _expect_invalid_token(response, 'Token validation failed')
 
 
 def test_valid_token_with_pubkey_refresh(test_app):
