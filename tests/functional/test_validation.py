@@ -44,7 +44,7 @@ def _expect_requires_token(
         introspect=introspect,
         scopes=scopes
     )
-    def fail_validatin():
+    def fail_validation():
         raise BaseException('Raised base exception')
 
     return app.test_client()
