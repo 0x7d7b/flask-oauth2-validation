@@ -32,14 +32,14 @@ def _expect_valid_token(response):
     assert 200 == response.status_code
 
 
-def _expect_insufficient_scope(response, msg):
+def _expect_insufficient_scope(response, scopes):
 
     assert 403 == response.status_code
 
     assert response.headers['WWW-Authenticate']
     assert 'Bearer ' + \
         'error="insufficient_scope" ' + \
-        'scope="'+msg+'"' \
+        'scope="'+scopes+'"' \
         == response.headers['WWW-Authenticate']
 
 
@@ -202,6 +202,20 @@ def test_valid_token_missing_scope(test_app):
     })
 
     _expect_insufficient_scope(response, 'bar')
+
+
+def test_valid_token_no_scopes(test_app):
+
+    test_client = _expect_requires_token(test_app, scopes=['foo', 'bar'])
+
+    response = test_client.get('/', headers={
+        'Authorization': 'Bearer ' + generate_test_token({
+            'iss': 'https://issuer.local/oauth2',
+            'aud': 'api://default'
+        })
+    })
+
+    _expect_insufficient_scope(response, 'bar foo')
 
 
 def test_valid_token_introspected_post(test_app):

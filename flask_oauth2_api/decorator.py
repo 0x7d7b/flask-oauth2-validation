@@ -334,14 +334,14 @@ class OAuth2Decorator():
                     )
             if scopes and 'scp' not in decoded:
                 raise OAuth2InsufficientScopeException(
-                    ' '.join(set(scopes))
+                    ' '.join(sorted(set(scopes)))
                 )
             if scopes and 'scp' in decoded:
                 decoded_scopes_set = set(decoded['scp'])
                 if scopes and not set(scopes).issubset(decoded_scopes_set):
                     raise OAuth2InsufficientScopeException(
                         ' '.join(
-                            set(scopes).difference(decoded_scopes_set)
+                            sorted(set(scopes).difference(decoded_scopes_set))
                         )
                     )
             self.token = decoded
