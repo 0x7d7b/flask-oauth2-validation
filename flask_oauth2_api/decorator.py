@@ -71,12 +71,9 @@ class OAuth2Decorator():
 
         app.config.setdefault('OAUTH2_ISSUER', None)
         app.config.setdefault('OAUTH2_AUDIENCE', None)
-        app.config.setdefault('OAUTH2_JWKS_URI', None)
         app.config.setdefault('OAUTH2_JWKS_UPDATE_INTERVAL', None)
         app.config.setdefault('OAUTH2_CLIENT_ID', None)
         app.config.setdefault('OAUTH2_CLIENT_SECRET', None)
-        app.config.setdefault('OAUTH2_INTROSPECTION_ENDPOINT', None)
-        app.config.setdefault('OAUTH2_INTROSPECTION_AUTH_METHOD', None)
 
         # Holds the current requests token in case
         # the verification steps where all successful.
@@ -116,16 +113,11 @@ class OAuth2Decorator():
                     'OAUTH2_CLIENT_SECRET config property required'
                 )
 
-        # In case the authorization server does not support
-        # metadata endpoints we can specify the JWKS URI manually.
-        self._jwks_uri = app.config.get('OAUTH2_JWKS_URI')
-
         # We are supposed to validate self encoded tokens
         # but don't have a pubkey and don't know the jwks_uri.
         # Then we need to retrieve it from the authorization
         # metadata endpoint
-        if not self._jwks_uri:
-            self._jwks_uri = self._lookup_metadata('jwks_uri')
+        self._jwks_uri = self._lookup_metadata('jwks_uri')
 
         # If an audience has been defined the JWT
         # token 'aud' attribute will be validated
@@ -149,47 +141,26 @@ class OAuth2Decorator():
         # we can use the introspection endpoint.
         if self._client_id and self._client_secret:
 
-            # We can provide an introspection endpoint in case
-            # the authorization server does not support metadata
-            # requests.
-            self._introspection_endpoint = app.config.get(
-                'OAUTH2_INTROSPECTION_ENDPOINT'
-            )
-
-            # When we don't have an introspection endpoint configured
-            # we need to look it up from the metadata endpoint.
+            # We need to look up the introspection endpoint from
+            # the authorization server metadata.
             if not self._introspection_endpoint:
                 self._introspection_endpoint = self._lookup_metadata(
                     'introspection_endpoint'
                 )
 
-            # It is possible to set up an introspection endpoint
-            # auth method.
-            self._introspection_auth_method = app.config.get(
-                'OAUTH2_INTROSPECTION_AUTH_METHOD'
-            )
-
-            # By default we use the client_secret_post auth method
-            if not self._introspection_auth_method:
-                self._introspection_auth_method = 'client_secret_post'
-            if (self._introspection_auth_method
-                    not in ['client_secret_post', 'client_secret_basic']):
-                raise TypeError(
-                    'Unsupported introspection auth method:',
-                    self._introspection_auth_method
-                )
-
-            # Once we've configured an auth method we need to
-            # validate it against the ones supported by the server
+            # Determine the auth method the introspection endpoint
+            # supports (basic or post are implemented so far):
             server_supported_auth_methods = self._lookup_metadata(
                 'introspection_endpoint_auth_methods_supported'
             )
-            if (self._introspection_auth_method
-                    not in server_supported_auth_methods):
+            if 'client_secret_post' in server_supported_auth_methods:
+                self._introspection_auth_method = 'client_secret_post'
+            elif 'client_secret_basic' in server_supported_auth_methods:
+                self._introspection_auth_method = 'client_secret_basic'
+            else:
                 raise TypeError(
-                    'The configured introspection endpoint auth method',
-                    'is not supported by the authorization server:',
-                    self._introspection_auth_method
+                    'The introspection auth methods are not implemented:',
+                    server_supported_auth_methods
                 )
 
     def _lookup_metadata(self, key: str) -> str:
