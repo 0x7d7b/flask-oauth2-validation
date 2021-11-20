@@ -178,6 +178,22 @@ def test_invalid_audience(test_app: Flask):
     _expect_invalid_token(response, 'Invalid token audience')
 
 
+def test_valid_audience(test_app: Flask):
+
+    test_app.config['OAUTH2_AUDIENCE'] = 'api://default'
+
+    test_client = _expect_requires_token(test_app)
+
+    response = test_client.get('/', headers={
+        'Authorization': 'Bearer ' + generate_test_token({
+            'iss': 'https://issuer.local/oauth2',
+            'aud': 'api://default',
+        })
+    })
+
+    _expect_valid_token(response)
+
+
 def test_invalid_issuer(test_app: Flask):
 
     test_client = _expect_requires_token(test_app)
