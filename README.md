@@ -5,12 +5,15 @@
 # Test
 
     pip install -e .[test]
-    pytest --cov=flask_oauth2_api
+    pytest -v --cov=flask_oauth2_api tests/
+    # Coverage visualized in vscode using "Code Coverage" extension
+    coverage-lcov
 
 # TODO
 
-- metadata request required for introspect auth method support validation
-    - completely switch to metadata support only?
+- validate tokens that don't have a 'kid' header?
+
+
 - write (mock) tests with a running flask instance
 
 - pydoc everywhere -> as good as if I would publish it

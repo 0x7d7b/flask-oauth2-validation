@@ -15,6 +15,7 @@ install_dependencies = [
 test_dependencies = [
     'pytest',
     'pytest-cov',
+    'coverage-lcov',
     'flask',
     'pytest-flask',
     'requests-mock'
