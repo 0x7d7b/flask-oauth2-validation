@@ -4,6 +4,8 @@ import pytest
 import requests_mock
 import logging
 
+from functional import test_jwk
+
 _test_logger = logging.getLogger(__name__)
 
 
@@ -117,8 +119,15 @@ def _register_mock_addresses(
         json={
             'keys': [
                 {'kid': 'x'},
-                {'kid': 'a'},
+                test_jwk,
                 {'kid': 'z'}
             ]
+        }
+    )
+
+    mock.get(
+        'https://issuer.local/oauth2/introspect',
+        json={
+            'active': True
         }
     )

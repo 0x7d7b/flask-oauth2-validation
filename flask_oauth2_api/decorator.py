@@ -338,13 +338,14 @@ class OAuth2Decorator():
                 raise OAuth2InsufficientScopeException(
                     ' '.join(set(scopes))
                 )
-            decoded_scopes_set = set(decoded['scp'])
-            if scopes and not set(scopes).issubset(decoded_scopes_set):
-                raise OAuth2InsufficientScopeException(
-                    ' '.join(
-                        set(scopes).difference(decoded_scopes_set)
+            if scopes and 'scp' in decoded:
+                decoded_scopes_set = set(decoded['scp'])
+                if scopes and not set(scopes).issubset(decoded_scopes_set):
+                    raise OAuth2InsufficientScopeException(
+                        ' '.join(
+                            set(scopes).difference(decoded_scopes_set)
+                        )
                     )
-                )
             self.token = decoded
             return decoded
         except JWTDecodeError as decode_error:

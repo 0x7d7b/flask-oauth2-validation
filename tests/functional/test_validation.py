@@ -1,5 +1,6 @@
 from flask_oauth2_api import OAuth2Decorator
 from flask import Flask, jsonify
+from . import generate_test_token
 
 
 def _expect_requires_token(app: Flask, introspect=False, scopes=[]):
@@ -19,6 +20,10 @@ def _expect_requires_token(app: Flask, introspect=False, scopes=[]):
         }), 200
 
     return app.test_client()
+
+
+def _expect_valid_token(response):
+    assert 200 == response.status_code
 
 
 def _expect_invalid_request(response, msg):
@@ -82,3 +87,20 @@ def test_request_wrong_syntax(test_app):
     })
 
     _expect_invalid_request(response, 'Invalid token format')
+
+
+def test_valid_token(test_app):
+
+    test_client = _expect_requires_token(test_app)
+
+    response = test_client.get('/', headers={
+        'Authorization': 'Bearer ' + generate_test_token({
+            'iss': 'https://issuer.local/oauth2',
+            'aud': 'api://default',
+            'foo': 'bar'
+        })
+    })
+    
+    print(response.headers)
+
+    _expect_valid_token(response)
