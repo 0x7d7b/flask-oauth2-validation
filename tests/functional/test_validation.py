@@ -311,3 +311,26 @@ def test_introspect_config_missing(test_app):
     })
 
     _expect_invalid_token(response, 'Invalid configuration')
+
+
+def test_expired_token(test_app):
+
+    test_client = _expect_requires_token(test_app)
+
+    response = test_client.get('/', headers={
+        'Authorization': 'Bearer ' + generate_test_token({
+            'iss': 'https://issuer.local/oauth2',
+            'aud': 'api://default',
+            'iat': 1,
+            'exp': 2
+        })
+    })
+
+    _expect_invalid_token(response, 'JWT Expired')
+
+
+# TODO: tests for:
+# - expired tokens,
+# - tokens with invalid signature,
+# - token with invalid base64 header (keyid lookup)
+# - key update executor
