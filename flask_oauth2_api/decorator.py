@@ -249,10 +249,9 @@ class OAuth2Decorator():
                 except Exception as decorated_error:
                     decorated_exception = decorated_error
             else:
-                if not decorated_exception:
-                    return OAuth2InvalidTokenException(
-                        'Invalid token'
-                    ).response()
+                return OAuth2InvalidTokenException(
+                    'Invalid token'
+                ).response()
         except OAuth2Exception as oauth2_exception:
             return oauth2_exception.response()
         except BaseException as error:
