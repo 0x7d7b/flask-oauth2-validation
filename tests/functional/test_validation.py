@@ -403,7 +403,7 @@ def test_valid_token_with_pubkey_refresh(test_app):
 
     _expect_valid_token(first_response)
 
-    sleep(1.2)
+    sleep(1.1)
 
     second_response_caused_pubkey_reload = test_client.get('/', headers={
         'Authorization': 'Bearer ' + generate_test_token({
@@ -414,7 +414,7 @@ def test_valid_token_with_pubkey_refresh(test_app):
     _expect_valid_token(second_response_caused_pubkey_reload)
 
     # Wait for the async key update to finish
-    sleep(0.5)
+    sleep(0.1)
 
 
 # TODO: tests for:
