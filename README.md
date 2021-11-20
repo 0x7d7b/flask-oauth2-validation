@@ -9,7 +9,8 @@
 
 # TODO
 
-
+- metadata request required for introspect auth method support validation
+    - completely switch to metadata support only?
 - write (mock) tests with a running flask instance
 
 - pydoc everywhere -> as good as if I would publish it

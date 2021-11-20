@@ -16,6 +16,7 @@ test_dependencies = [
     'pytest',
     'pytest-cov',
     'flask',
+    'pytest-flask',
     'requests-mock'
 ]
 
