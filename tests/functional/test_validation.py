@@ -1,7 +1,8 @@
-from flask_oauth2_api import OAuth2Decorator
-from flask import Flask, jsonify
-from . import generate_test_token
 import pytest
+from flask import Flask, jsonify
+from flask_oauth2_api import OAuth2Decorator
+
+from . import generate_test_token
 
 
 def _expect_requires_token(
@@ -15,6 +16,10 @@ def _expect_requires_token(
 
     oauth2 = OAuth2Decorator(app)
 
+    @app.errorhandler(Exception)
+    def internal_server_error(e):
+        return jsonify({'error': str(e)}), 500
+
     @app.route('/')
     @oauth2.requires_token(
         introspect=introspect,
@@ -25,11 +30,23 @@ def _expect_requires_token(
             'token': oauth2.token
         }), 200
 
+    @app.route('/raise')
+    @oauth2.requires_token(
+        introspect=introspect,
+        scopes=scopes
+    )
+    def raise_me():
+        raise Exception('Exception from decorated method')
+
     return app.test_client()
 
 
 def _expect_valid_token(response):
     assert 200 == response.status_code
+
+
+def _expect_internal_server_error(response, msg):
+    assert 500 == response.status_code
 
 
 def _expect_insufficient_scope(response, scopes):
@@ -338,7 +355,6 @@ def test_expired_token(test_app):
     response = test_client.get('/', headers={
         'Authorization': 'Bearer ' + generate_test_token({
             'iss': 'https://issuer.local/oauth2',
-            'aud': 'api://default',
             'iat': 1,
             'exp': 2
         })
@@ -356,12 +372,24 @@ def test_invalid_token_unknown_pubkey(test_app):
 
     response = test_client.get('/', headers={
         'Authorization': 'Bearer ' + generate_test_token({
-            'iss': 'https://unknown_pubkey.issuer.local/oauth2',
-            'aud': 'api://default',
+            'iss': 'https://unknown_pubkey.issuer.local/oauth2'
         })
     })
 
     _expect_invalid_token(response, 'Invalid token signature')
+
+
+def test_decorated_method_raises_exception(test_app):
+
+    test_client = _expect_requires_token(test_app)
+
+    response = test_client.get('/raise', headers={
+        'Authorization': 'Bearer ' + generate_test_token({
+            'iss': 'https://issuer.local/oauth2'
+        })
+    })
+
+    _expect_internal_server_error(response, 'Exception from decorated method')
 
 
 # TODO: tests for:

@@ -228,6 +228,7 @@ class OAuth2Decorator():
         """
         introspect = kwargs['introspect']
         scopes = kwargs['scopes']
+        decorated_exception = None
         try:
             if self._executor:
                 self._executor.submit(self._update_keys)
@@ -243,11 +244,15 @@ class OAuth2Decorator():
             if self._is_valid(token, introspect, scopes):
                 kwargs.pop('scopes', None)
                 kwargs.pop('introspect', None)
-                return fn(*args, **kwargs)
+                try:
+                    return fn(*args, **kwargs)
+                except Exception as decorated_error:
+                    decorated_exception = decorated_error
             else:
-                return OAuth2InvalidTokenException(
-                    'Invalid token'
-                ).response()
+                if not decorated_exception:
+                    return OAuth2InvalidTokenException(
+                        'Invalid token'
+                    ).response()
         except OAuth2Exception as oauth2_exception:
             return oauth2_exception.response()
         except BaseException as error:
@@ -255,6 +260,8 @@ class OAuth2Decorator():
             return OAuth2InvalidTokenException(
                 'Token validation failed'
             ).response()
+        if decorated_exception:
+            raise decorated_exception
 
     def _extract_token(self, authorization_header: str):
         if not authorization_header.startswith('Bearer '):
