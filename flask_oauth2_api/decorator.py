@@ -157,7 +157,7 @@ class OAuth2Decorator():
             else:
                 raise TypeError(
                     'The introspection auth methods are not supported: ' +
-                    server_supported_auth_methods
+                    ' '.join(server_supported_auth_methods)
                 )
 
     def _lookup_metadata(self, key: str) -> str:
@@ -359,7 +359,6 @@ class OAuth2Decorator():
                 return jwt_header['kid']
         except BaseException:
             raise OAuth2BadRequestException('Invalid token format')
-        return None
 
     def _update_keys(self):
         if (self._use_self_encoded_token
