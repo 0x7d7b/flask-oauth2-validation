@@ -138,7 +138,7 @@ def _register_mock_addresses(
             ]
         }
     )
-    
+
     mock.get(
         'https://key_lookup_error.issuer.local/oauth2' +
         '/.well-known/oauth-authorization-server',
@@ -193,4 +193,24 @@ def _register_mock_addresses(
         json={
             'active': True
         }
+    )
+
+    mock.get(
+        'https://introspection_error.issuer.local/oauth2' +
+        '/.well-known/oauth-authorization-server',
+        json={
+            'jwks_uri':
+                'https://issuer.local/oauth2/keys',
+            'introspection_endpoint':
+                'https://introspection_error.issuer.local/oauth2/introspect',
+            'introspection_endpoint_auth_methods_supported': [
+                'client_secret_basic',
+                'client_secret_post'
+            ]
+        }
+    )
+
+    mock.post(
+        'https://introspection_error.issuer.local/oauth2/introspect',
+        status_code=500
     )

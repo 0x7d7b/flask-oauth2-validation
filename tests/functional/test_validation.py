@@ -243,6 +243,26 @@ def test_valid_token_introspected_basic(test_app):
     _expect_valid_token(response)
 
 
+def test_invalid_token_introspection_error(test_app):
+
+    test_app.config['OAUTH2_CLIENT_ID'] = 'foo'
+    test_app.config['OAUTH2_CLIENT_SECRET'] = 'bar'
+
+    test_client = _expect_requires_token(
+        test_app,
+        introspect=True,
+        issuer='https://introspection_error.issuer.local/oauth2'
+    )
+
+    response = test_client.get('/', headers={
+        'Authorization': 'Bearer ' + generate_test_token({
+            'iss': 'https://introspection_error.issuer.local/oauth2',
+        })
+    })
+
+    _expect_invalid_token(response, 'Invalid token')
+
+
 def test_invalid_token_introspected(test_app):
 
     test_app.config['OAUTH2_CLIENT_ID'] = 'foo'

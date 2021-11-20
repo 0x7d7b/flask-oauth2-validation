@@ -300,9 +300,8 @@ class OAuth2Decorator():
             )
             return False
         token_information = response.json()
-        if 'active' in token_information:
-            return token_information['active']
-        return False
+        return 'active' in token_information \
+            and token_information['active']
 
     def _validate_jwt(self, token: str, scopes: list) -> bool:
         pubkey = None
