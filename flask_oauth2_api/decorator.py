@@ -56,9 +56,7 @@ class OAuth2InsufficientScopeException(OAuth2Exception):
         super().__init__(403, 'insufficient_scope', missing_scope)
 
     def _error_description(self):
-        if self.error_message:
-            return 'scope="' + self.error_message + '"'
-        return None
+        return 'scope="' + self.error_message + '"'
 
 
 class OAuth2Decorator():
@@ -158,7 +156,7 @@ class OAuth2Decorator():
                 self._introspection_auth_method = 'client_secret_basic'
             else:
                 raise TypeError(
-                    'The introspection auth methods are not implemented: ' +
+                    'The introspection auth methods are not supported: ' +
                     server_supported_auth_methods
                 )
 
@@ -205,10 +203,8 @@ class OAuth2Decorator():
             response = requests.get(self._jwks_uri)
             if not response.status_code == 200:
                 raise TypeError(
-                    'Cannot request public keys from ' +
-                    self._jwks_uri +
-                    ': ' +
-                    response.status_code
+                    f'Cannot request public keys from {self._jwks_uri}: ' +
+                    str(response.status_code)
                 )
             jwks_metadata = response.json()
             if 'keys' in jwks_metadata:
@@ -289,7 +285,10 @@ class OAuth2Decorator():
         }
         if self._introspection_auth_method == 'client_secret_basic':
             token_headers['Authentication'] = 'Basic ' + \
-                base64.encode(self._client_id + ':' + self._client_secret)
+                base64.b64encode(bytes(
+                    self._client_id + ':' + self._client_secret,
+                    encoding='utf-8'
+                )).decode(encoding='utf-8')
         response = requests.post(
             url=self._introspection_endpoint,
             data=token_parameters,
