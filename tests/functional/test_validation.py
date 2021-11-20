@@ -421,4 +421,3 @@ def test_valid_token_with_pubkey_refresh(test_app):
 # - tokens should be verified correctly even if no kid in header (?)
 # - tokens with invalid signature,
 # - token with invalid base64 header (keyid lookup)
-# - key update executor
