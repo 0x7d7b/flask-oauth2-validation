@@ -271,7 +271,8 @@ def test_valid_token_introspected_unknown_auth(test_app):
         )
 
         assert str(error.value) == \
-            'The introspection auth methods are not supported: client_secret_unknown'
+            'The introspection auth methods are not supported: ' + \
+            'client_secret_unknown'
 
 
 def test_invalid_token_introspection_error(test_app):
