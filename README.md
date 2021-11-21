@@ -11,58 +11,72 @@ It only covers validation logic required by _resource servers (APIs)_ and does n
 # Configuration
 The minimal configuration expects the ```OAUTH2_ISSUER``` attribute being set which points to the issuer:
 
-    app.config['OAUTH2_ISSUER'] = 'https://<your-issuer>/oauth2'
+```python
+app.config['OAUTH2_ISSUER'] = 'https://<your-issuer>/oauth2'#
+```
 
 This would perform local token validation after downloading the public keys ([RFC-7517](https://datatracker.ietf.org/doc/html/rfc7517)) from the authorization server ([RFC-7800](https://datatracker.ietf.org/doc/html/rfc7800)).
 
 In case you also need to perform remote token validation ([RFC-7662](https://datatracker.ietf.org/doc/html/rfc7662)) an ```OAUTH2_CLIENT_ID``` and ```OAUTH2_CLIENT_SECRET``` need to be configured:
 
-    app.config['OAUTH2_CLIENT_ID'] = 'your-client-id'
-    app.config['OAUTH2_CLIENT_SECRET'] = 'your-client-secret'
+```python
+app.config['OAUTH2_CLIENT_ID'] = 'your-client-id'
+app.config['OAUTH2_CLIENT_SECRET'] = 'your-client-secret'
+```
 
 In case your authorization server uses rotating public keys an ```OAUTH2_JWKS_UPDATE_INTERVAL``` (in seconds) could be configured to regularly download the latest public keys from the authorization server:
 
-    app.config['OAUTH2_JWKS_UPDATE_INTERVAL'] = 3600
+```python
+app.config['OAUTH2_JWKS_UPDATE_INTERVAL'] = 3600
+```
 
 For a more strict validation it is recommended to configure an ```OAUTH2_AUDIENCE``` to verify the token against:
 
-    app.config['OAUTH2_AUDIENCE'] = 'api://default'
+```python
+app.config['OAUTH2_AUDIENCE'] = 'api://default'
+```
 
 # Usage
 To provide OAuth2 token validation to your endpoints simply add the ```OAuth2Decorator```:
 
-    from flask_oauth2_validation import OAuth2Decoratory
-    ...
-    oauth2 = OAuth2Decorator(app)
-    ...
-    @oauth2.requires_token()
-    @app.route('/protected')
-    def protected():
-        pass
+```python
+from flask_oauth2_validation import OAuth2Decoratory
+
+oauth2 = OAuth2Decorator(app)
+
+@oauth2.requires_token()
+@app.route('/protected')
+def protected():
+    pass
+```
 
 This would perform local token validation, only. To enable remote token validation you need to provide the ```introspect=True``` argument:
 
-    @oauth2.requires_token(introspect=True)
-    @app.route('/protected')
-    def protected():
-        pass
+```python
+@oauth2.requires_token(introspect=True)
+@app.route('/protected')
+def protected():
+    pass
+```
 
 In case you require one or multiple scopes to allow execution, add the ```scopes=[...]``` argument:
 
-    @oauth2.requires_token(scopes=['profile', 'email'])
-    @app.route('/protected')
-    def protected():
-        pass
+```python
+@oauth2.requires_token(scopes=['profile', 'email'])
+@app.route('/protected')
+def protected():
+    pass
+```
 
 To access the token from within your method you can access it via the ```OAuth2Decorator``` object like:
 
-    @oauth2.requires_token()
-    @app.route('/protected')
-    def protected():
-        token: dict = oauth2.token
-        pass
-
-
+```python
+@oauth2.requires_token()
+@app.route('/protected')
+def protected():
+    token: dict = oauth2.token
+    pass
+```
 
 # License
 
