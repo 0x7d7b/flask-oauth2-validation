@@ -15,7 +15,5 @@
 # TODO
 - rename flask-oauth2-api to flask-oauth2-resource-server (?)
 - pydoc everywhere -> as good as if I would publish it
-- travis CI with test execution?
-- coveralls github actions?
 - render documentation site?
 - fix minimal required dependency versions

@@ -14,7 +14,6 @@ install_dependencies = [
 test_dependencies = [
     'pytest',
     'pytest-cov',
-    'coverage-lcov',
     'requests-mock'
 ]
 
