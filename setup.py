@@ -7,12 +7,6 @@ install_dependencies = [
     'flask'
 ]
 
-test_dependencies = [
-    'pytest',
-    'pytest-cov',
-    'requests-mock'
-]
-
 with open('README.md', 'r', encoding='utf-8') as fh:
     long_description = fh.read()
 
@@ -42,11 +36,6 @@ setup(
     packages=find_packages('src'),
     python_requires='>=3.6',
     include_package_data=True,
-    install_requires=install_dependencies,
-    test_suite='tests',
-    tests_require=test_dependencies,
-    extras_require={
-        'test': test_dependencies
-    }
+    install_requires=install_dependencies
 
 )
