@@ -2,8 +2,9 @@ import pytest
 from flask import Flask, jsonify
 from flask_oauth2_api import OAuth2Decorator
 from time import sleep
+from jwt.jwk import RSAJWK
 
-from . import generate_test_token
+from . import generate_test_token, _generate_test_keys, _generate_test_jwk
 
 
 def _expect_requires_token(
@@ -490,6 +491,23 @@ def test_valid_token_with_pubkey_refresh(test_app):
     # Wait for the async key update to finish
     sleep(0.1)
 
+
+def test_invalid_token_wrong_pubkey(test_app):
+
+    _, priv = _generate_test_keys()
+
+    test_client = _expect_requires_token(test_app)
+
+    response = test_client.get('/', headers={
+        'Authorization': 'Bearer ' + generate_test_token(
+            {
+                'iss': 'https://issuer.local/oauth2',
+            },
+            key=RSAJWK(priv, kid='a', alg='RS256')
+        )
+    })
+
+    _expect_invalid_token(response, 'failed to decode JWT')
 
 # TODO: tests for:
 # - tokens with invalid signature,

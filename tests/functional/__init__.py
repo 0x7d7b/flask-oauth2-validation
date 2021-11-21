@@ -27,11 +27,12 @@ test_jwk = _generate_test_jwk(_public_key)
 
 def generate_test_token(
     payload: dict,
-    optional_headers={'kid': 'a'}
+    optional_headers={'kid': 'a'},
+    key=RSAJWK(_private_key, kid='a', alg='RS256')
 ) -> str:
     return _jwt.encode(
         payload=payload,
-        key=RSAJWK(_private_key, kid='a', alg='RS256'),
+        key=key,
         alg='RS256',
         optional_headers=optional_headers
     )
