@@ -1,3 +1,5 @@
+[![Build Python Package](https://github.com/0x7d7b/flask-oauth2-api/actions/workflows/python-publish.yml/badge.svg)](https://github.com/0x7d7b/flask-oauth2-api/actions/workflows/python-publish.yml)
+
 # Install
 
     pip install .
