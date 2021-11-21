@@ -22,9 +22,9 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     license='MIT',
-    url='https://github.com/0x7d7b/flask-oauth2-api',
+    url='https://github.com/0x7d7b/flask-oauth2-validation',
     project_urls={
-        'Bug Tracker': 'https://github.com/0x7d7b/flask-oauth2-api/issues',
+        'Bug Tracker': 'https://github.com/0x7d7b/flask-oauth2-validation/issues',
     },
     classifiers=[
         'Programming Language :: Python :: 3',
