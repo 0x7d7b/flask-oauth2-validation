@@ -56,6 +56,7 @@ def _expect_valid_token(response):
 
 def _expect_internal_server_error(response, msg):
     assert 500 == response.status_code
+    assert response.get_json()['error'] == 'Exception from decorated method'
 
 
 def _expect_insufficient_scope(response, scopes):
