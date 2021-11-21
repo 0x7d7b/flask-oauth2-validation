@@ -508,6 +508,3 @@ def test_invalid_token_wrong_pubkey(test_app):
     })
 
     _expect_invalid_token(response, 'failed to decode JWT')
-
-# TODO: tests for:
-# - tokens with invalid signature,
