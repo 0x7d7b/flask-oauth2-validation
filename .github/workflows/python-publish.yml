@@ -1,0 +1,25 @@
+name: Build Python Package
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.x"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools wheel twine
+      - name: Build
+        run: |
+          pip install -e .
+      - name: Run tests
+        run: |
+          pip install -e .[test]
+          python -m pytest -v tests/ --cov=flask_oauth2_api
+      - name: Build package
+        run: |
+          python -m build

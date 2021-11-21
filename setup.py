@@ -17,7 +17,6 @@ test_dependencies = [
     'pytest',
     'pytest-cov',
     'coverage-lcov',
-    'pytest-flask',
     'requests-mock'
 ]
 
