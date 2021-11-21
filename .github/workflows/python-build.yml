@@ -27,4 +27,4 @@ jobs:
           python -m pytest -v --cov=flask_oauth2_api --full-trace
       - name: Build package
         run: |
-          python -m build
+          python setup.py egg_info --tag-build=dev --tag-date bdist_egg

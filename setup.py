@@ -1,9 +1,5 @@
 from setuptools import find_packages, setup
 
-setup_dependencies = [
-    'flake8'
-]
-
 install_dependencies = [
     'jwt',
     'requests',
@@ -21,7 +17,7 @@ with open('README.md', 'r', encoding='utf-8') as fh:
     long_description = fh.read()
 
 setup(
-    name='flask-oauth2-api',
+    name='flask_oauth2_api',
     version='0.1.0',
     author='Henrik Sachse',
     author_email='henrik@0x7d7b.net',
@@ -46,7 +42,6 @@ setup(
     packages=find_packages('src'),
     python_requires='>=3.6',
     include_package_data=True,
-    setup_requires=setup_dependencies,
     install_requires=install_dependencies,
     test_suite='tests',
     tests_require=test_dependencies,
