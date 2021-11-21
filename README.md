@@ -8,6 +8,7 @@
     pytest -v --cov=flask_oauth2_api tests/
     # Coverage visualized in vscode using "Code Coverage" extension
     coverage-lcov
+    python3 -m build
 
 # TODO
 - rename flask-oauth2-api to flask-oauth2-resource-server (?)
