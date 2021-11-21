@@ -12,7 +12,7 @@ It only covers validation logic required by _resource servers (APIs)_ and does n
 The minimal configuration expects the ```OAUTH2_ISSUER``` attribute being set which points to the issuer:
 
 ```python
-app.config['OAUTH2_ISSUER'] = 'https://<your-issuer>/oauth2'#
+app.config['OAUTH2_ISSUER'] = 'https://<your-issuer>/oauth2'
 ```
 
 This would perform local token validation after downloading the public keys ([RFC-7517](https://datatracker.ietf.org/doc/html/rfc7517)) from the authorization server ([RFC-7800](https://datatracker.ietf.org/doc/html/rfc7800)).
