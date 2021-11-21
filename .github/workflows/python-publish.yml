@@ -12,7 +12,7 @@ jobs:
       - name: Lint
         uses: py-actions/flake8@v1
         with:
-          ignore: "F401"
+          ignore: "F401,W503"
           path: "src"
       - name: Install dependencies
         run: |
