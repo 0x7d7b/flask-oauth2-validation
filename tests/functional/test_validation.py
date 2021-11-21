@@ -185,7 +185,8 @@ def test_invalid_token_header_kid_missing(test_app):
     })
 
     _expect_invalid_request(
-        response, "No 'kid' attribute found in token header")
+        response, "No 'kid' attribute found in token header"
+    )
 
 
 def test_invalid_audience(test_app: Flask):
