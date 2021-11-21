@@ -31,4 +31,4 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
         run: |
-          twine upload --skip-existing --non-interactive --verbose --repository testpypi dist/*
+          twine upload --disable-progress-bar --skip-existing --non-interactive --verbose --repository testpypi dist/*
