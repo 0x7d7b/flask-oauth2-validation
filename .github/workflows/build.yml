@@ -29,4 +29,4 @@ jobs:
           TWINE_USERNAME: $
           TWINE_PASSWORD: $
         run: |
-          twine upload --verbose --repository testpypi dist/*
+          twine upload --skip-existing --non-interactive --verbose --repository testpypi dist/*

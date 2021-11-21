@@ -16,7 +16,7 @@ setup(
     author='Henrik Sachse',
     author_email='henrik@0x7d7b.net',
     description=(
-        'Flask OAuth2 extension to verify self-encoded'
+        'Flask OAuth2 extension to verify self-encoded '
         'JWT based access tokens for resource servers'
     ),
     long_description=long_description,
