@@ -171,6 +171,23 @@ def test_invalid_token_pubkey_lookup_error(test_app):
             'https: // key_lookup_error.issuer.local/oauth2/keys'
 
 
+def test_invalid_token_header_kid_missing(test_app):
+
+    test_client = _expect_requires_token(test_app)
+
+    response = test_client.get('/', headers={
+        'Authorization': 'Bearer ' + generate_test_token(
+            {
+                'iss': 'https://issuer.local/oauth2'
+            },
+            optional_headers={}
+        )
+    })
+
+    _expect_invalid_request(
+        response, "No 'kid' attribute found in token header")
+
+
 def test_invalid_audience(test_app: Flask):
 
     test_app.config['OAUTH2_AUDIENCE'] = 'api://default'

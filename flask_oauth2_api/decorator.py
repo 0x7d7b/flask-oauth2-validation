@@ -312,6 +312,10 @@ class OAuth2Decorator():
         pubkey = None
         if self._issuer_public_keys:
             key_id = self._lookup_key_id(token)
+            if not key_id:
+                raise OAuth2BadRequestException(
+                    "No 'kid' attribute found in token header"
+                )
             if key_id and key_id in self._issuer_public_keys:
                 pubkey = jwk_from_dict(self._issuer_public_keys[key_id])
         if not pubkey:
