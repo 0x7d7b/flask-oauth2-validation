@@ -31,7 +31,7 @@ For a more strict validation it is recommended to configure an ```OAUTH2_AUDIENC
 # Usage
 To provide OAuth2 token validation to your endpoints simply add the ```OAuth2Decorator```:
 
-    from flask_oauth2_api import OAuth2Decoratory
+    from flask_oauth2_validation import OAuth2Decoratory
     ...
     oauth2 = OAuth2Decorator(app)
     ...
