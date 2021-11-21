@@ -1,18 +1,19 @@
 [![Build](https://github.com/0x7d7b/flask-oauth2-api/actions/workflows/build.yml/badge.svg)](https://github.com/0x7d7b/flask-oauth2-api/actions/workflows/build.yml) [![Test](https://github.com/0x7d7b/flask-oauth2-api/actions/workflows/test.yml/badge.svg)](https://github.com/0x7d7b/flask-oauth2-api/actions/workflows/test.yml)
 
-This python package provides a Flask decorator which adds local and remote OAuth2 validation for self-encoded JWT based access tokens.
+This python package provides a [Flask](https://flask.palletsprojects.com/) decorator which adds local and remote _OAuth2_ ([RFC-6749](https://datatracker.ietf.org/doc/html/rfc6749)) validation for self-encoded _JWT_ ([RFC-7519](https://datatracker.ietf.org/doc/html/rfc7519)) based _Bearer_ ([RFC-6750](https://datatracker.ietf.org/doc/html/rfc6750)) access tokens.
 
 # Requirements
-The authorization server has to support _Authorization Server Metadata_ (RFC-8414).
+- The authorization server has to support _Authorization Server Metadata_ ([RFC-8414](https://datatracker.ietf.org/doc/html/rfc8414)).
+- The JWT access tokens should follow the _JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens_ ([RFC-9068](https://www.rfc-editor.org/rfc/rfc9068.html)).
 
 # Configuration
 The minimal configuration expects the ```OAUTH2_ISSUER``` attribute being set only which points to the issuer:
 
     app.config['OAUTH2_ISSUER'] = 'https://<your-issuer>/oauth2'
 
-This would perform local token validation after downloading the public keys from the authorization server.
+This would perform local token validation after downloading the public keys ([RFC-7517](https://datatracker.ietf.org/doc/html/rfc7517)) from the authorization server ([RFC-7800](https://datatracker.ietf.org/doc/html/rfc7800)).
 
-In case you also need to perform remote token validation a ```OAUTH2_CLIENT_ID``` and ```OAUTH2_CLIENT_SECRET``` need to be configured:
+In case you also need to perform remote token validation ([RFC-7662](https://datatracker.ietf.org/doc/html/rfc7662)) a ```OAUTH2_CLIENT_ID``` and ```OAUTH2_CLIENT_SECRET``` need to be configured:
 
     app.config['OAUTH2_CLIENT_ID'] = 'your-client-id'
     app.config['OAUTH2_CLIENT_SECRET'] = 'your-client-secret'
