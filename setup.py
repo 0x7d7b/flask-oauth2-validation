@@ -1,7 +1,5 @@
 from setuptools import find_packages, setup
 
-# import src.flask_oauth2_api as flask_oauth2_api
-
 setup_dependencies = [
     'flake8'
 ]
