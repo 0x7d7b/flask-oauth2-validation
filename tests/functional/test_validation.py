@@ -189,6 +189,24 @@ def test_invalid_token_header_kid_missing(test_app):
     )
 
 
+def test_invalid_token_corrupt_Header(test_app):
+
+    test_client = _expect_requires_token(test_app)
+
+    response = test_client.get('/', headers={
+        'Authorization': 'Bearer ' +
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ.' +
+        'eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI' +
+        '6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.' +
+        'SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+
+    })
+
+    _expect_invalid_request(
+        response, 'Invalid token format'
+    )
+
+
 def test_invalid_audience(test_app: Flask):
 
     test_app.config['OAUTH2_AUDIENCE'] = 'api://default'
@@ -474,6 +492,4 @@ def test_valid_token_with_pubkey_refresh(test_app):
 
 
 # TODO: tests for:
-# - tokens should be verified correctly even if no kid in header (?)
 # - tokens with invalid signature,
-# - token with invalid base64 header (keyid lookup)
