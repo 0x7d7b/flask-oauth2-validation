@@ -1,4 +1,4 @@
-[![Python Package Build](https://github.com/0x7d7b/flask-oauth2-api/actions/workflows/python-build.yml/badge.svg)](https://github.com/0x7d7b/flask-oauth2-api/actions/workflows/python-build.yml)
+[![Build](https://github.com/0x7d7b/flask-oauth2-api/actions/workflows/build.yml/badge.svg)](https://github.com/0x7d7b/flask-oauth2-api/actions/workflows/build.yml) [![Test](https://github.com/0x7d7b/flask-oauth2-api/actions/workflows/test.yml/badge.svg)](https://github.com/0x7d7b/flask-oauth2-api/actions/workflows/test.yml)
 
 This python package provides a Flask decorator which adds OAuth2 validation for self-encoded JWT based access tokens.
 
