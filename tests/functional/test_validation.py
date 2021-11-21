@@ -4,7 +4,7 @@ from flask_oauth2_api import OAuth2Decorator
 from time import sleep
 from jwt.jwk import RSAJWK
 
-from . import generate_test_token, _generate_test_keys, _generate_test_jwk
+from . import generate_test_token, _generate_test_keys
 
 
 def _expect_requires_token(
