@@ -24,7 +24,8 @@ setup(
     license='MIT',
     url='https://github.com/0x7d7b/flask-oauth2-validation',
     project_urls={
-        'Bug Tracker': 'https://github.com/0x7d7b/flask-oauth2-validation/issues',
+        'Bug Tracker':
+            'https://github.com/0x7d7b/flask-oauth2-validation/issues',
     },
     classifiers=[
         'Programming Language :: Python :: 3',
