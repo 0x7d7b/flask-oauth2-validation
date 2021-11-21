@@ -1,6 +1,6 @@
 [![Build](https://github.com/0x7d7b/flask-oauth2-api/actions/workflows/build.yml/badge.svg)](https://github.com/0x7d7b/flask-oauth2-api/actions/workflows/build.yml) [![Test](https://github.com/0x7d7b/flask-oauth2-api/actions/workflows/test.yml/badge.svg)](https://github.com/0x7d7b/flask-oauth2-api/actions/workflows/test.yml)
 
-This python package provides a Flask decorator which adds OAuth2 validation for self-encoded JWT based access tokens.
+This python package provides a Flask decorator which adds local and remote OAuth2 validation for self-encoded JWT based access tokens.
 
 # Requirements
 The authorization server has to support _Authorization Server Metadata_ (RFC-8414).
