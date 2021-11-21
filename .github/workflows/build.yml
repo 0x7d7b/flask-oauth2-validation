@@ -24,3 +24,9 @@ jobs:
       - name: Pre-publish check
         run: |
           twine check dist/*
+      - name: Publish to TestPyPI
+        env:
+          TWINE_USERNAME: $
+          TWINE_PASSWORD: $
+        run: |
+          twine upload --verbose --repository testpypi dist/*
