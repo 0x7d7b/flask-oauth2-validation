@@ -11,7 +11,7 @@ with open('README.md', 'r', encoding='utf-8') as fh:
     long_description = fh.read()
 
 setup(
-    name='flask_oauth2_api',
+    name='flask-oauth2-api',
     version='0.1.0',
     author='Henrik Sachse',
     author_email='henrik@0x7d7b.net',
@@ -37,5 +37,4 @@ setup(
     python_requires='>=3.6',
     include_package_data=True,
     install_requires=install_dependencies
-
 )
