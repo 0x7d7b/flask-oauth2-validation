@@ -1,4 +1,4 @@
-from flask_oauth2_api import OAuth2Decorator
+from flask_oauth2_validation import OAuth2Decorator
 import pytest
 from . import mocked_keys
 

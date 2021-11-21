@@ -1,6 +1,6 @@
 import pytest
 from flask import Flask, jsonify
-from flask_oauth2_api import OAuth2Decorator
+from flask_oauth2_validation import OAuth2Decorator
 from time import sleep
 from jwt.jwk import RSAJWK
 

@@ -11,13 +11,13 @@ with open('README.md', 'r', encoding='utf-8') as fh:
     long_description = fh.read()
 
 setup(
-    name='flask-oauth2-api',
+    name='flask-oauth2-validation',
     version='0.1.0',
     author='Henrik Sachse',
     author_email='henrik@0x7d7b.net',
     description=(
-        'Flask OAuth2 extension to verify self-encoded '
-        'JWT based access tokens for resource servers'
+        'A Flask decorator which adds local and remote OAuth2 '
+        'validation for self-encoded JWT based Bearer access tokens.'
     ),
     long_description=long_description,
     long_description_content_type='text/markdown',
