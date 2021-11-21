@@ -1,4 +1,4 @@
-[![Build Python Package](https://github.com/0x7d7b/flask-oauth2-api/actions/workflows/python-build.yml/badge.svg)](https://github.com/0x7d7b/flask-oauth2-api/actions/workflows/python-build.yml)
+[![Python Package Build](https://github.com/0x7d7b/flask-oauth2-api/actions/workflows/python-build.yml/badge.svg)](https://github.com/0x7d7b/flask-oauth2-api/actions/workflows/python-build.yml)
 
 # Install
 
