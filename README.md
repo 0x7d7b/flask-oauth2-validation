@@ -1,4 +1,4 @@
-[![Build](https://github.com/0x7d7b/flask-oauth2-api/actions/workflows/build.yml/badge.svg)](https://github.com/0x7d7b/flask-oauth2-api/actions/workflows/build.yml) [![Test](https://github.com/0x7d7b/flask-oauth2-api/actions/workflows/test.yml/badge.svg)](https://github.com/0x7d7b/flask-oauth2-api/actions/workflows/test.yml)
+[![Build](https://github.com/0x7d7b/flask-oauth2-validation/actions/workflows/build.yml/badge.svg)](https://github.com/0x7d7b/flask-oauth2-validation/actions/workflows/build.yml) [![Test](https://github.com/0x7d7b/flask-oauth2-validation/actions/workflows/test.yml/badge.svg)](https://github.com/0x7d7b/flask-oauth2-validation/actions/workflows/test.yml)
 
 This python package provides a [Flask](https://flask.palletsprojects.com/) decorator which adds local and remote _OAuth2_ ([RFC-6749](https://datatracker.ietf.org/doc/html/rfc6749)) validation for self-encoded _JWT_ ([RFC-7519](https://datatracker.ietf.org/doc/html/rfc7519)) based _Bearer_ ([RFC-6750](https://datatracker.ietf.org/doc/html/rfc6750)) access tokens.
 
