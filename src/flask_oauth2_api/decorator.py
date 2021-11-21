@@ -155,8 +155,8 @@ class OAuth2Decorator():
                 self._introspection_auth_method = 'client_secret_basic'
             else:
                 raise TypeError(
-                    'The introspection auth methods are not supported: ' +
-                    ' '.join(server_supported_auth_methods)
+                    'The introspection auth methods are not supported: '
+                    + ' '.join(server_supported_auth_methods)
                 )
 
     def _lookup_metadata(self, key: str) -> str:
@@ -188,8 +188,8 @@ class OAuth2Decorator():
             )
         except BaseException as http_error:
             raise TypeError(
-                'Cannot request authorization server metadata: ' +
-                str(http_error)
+                'Cannot request authorization server metadata: '
+                + str(http_error)
             )
 
     def _lookup_keys(self) -> dict:
@@ -202,8 +202,8 @@ class OAuth2Decorator():
             response = requests.get(self._jwks_uri)
             if not response.status_code == 200:
                 raise TypeError(
-                    f'Cannot request public keys from {self._jwks_uri}: ' +
-                    str(response.status_code)
+                    f'Cannot request public keys from {self._jwks_uri}: '
+                    + str(response.status_code)
                 )
             jwks_metadata = response.json()
             if 'keys' in jwks_metadata:
@@ -215,10 +215,10 @@ class OAuth2Decorator():
                 self._issuer_public_keys = retrieved_keys
         except BaseException as http_error:
             raise TypeError(
-                'Cannot request public keys from ' +
-                self._jwks_uri +
-                ': ' +
-                str(http_error)
+                'Cannot request public keys from '
+                + self._jwks_uri
+                + ': '
+                + str(http_error)
             )
 
     def _handle_token(self, fn, *args, **kwargs):
