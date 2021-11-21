@@ -182,9 +182,9 @@ class OAuth2Decorator():
             if key in metadata:
                 return metadata[key]
             raise TypeError(
-                'No attribute ' +
-                key +
-                ' found in authorization server metadata'
+                'No attribute '
+                + key
+                + ' found in authorization server metadata'
             )
         except BaseException as http_error:
             raise TypeError(
