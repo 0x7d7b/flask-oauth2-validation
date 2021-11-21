@@ -23,8 +23,7 @@ jobs:
           pip install -e .
       - name: Run tests
         run: |
-          pip install -e .[test]
-          python -m pytest -v --cov=flask_oauth2_api --full-trace
+          tox
       - name: Build package
         run: |
           python setup.py egg_info --tag-build=dev --tag-date bdist_egg
