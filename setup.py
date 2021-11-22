@@ -37,7 +37,7 @@ setup(
     ],
     package_dir={'': 'src'},
     packages=find_packages('src'),
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     include_package_data=True,
     install_requires=install_dependencies
 )
