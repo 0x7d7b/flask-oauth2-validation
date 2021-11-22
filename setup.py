@@ -1,11 +1,18 @@
 from setuptools import find_packages, setup
 
+from distutils.util import convert_path
+
+main_ns = {}
+ver_path = convert_path('src/flask_oauth2_validation/version.py')
+with open(ver_path) as ver_file:
+    exec(ver_file.read(), main_ns)
+
 with open('README.md', 'r', encoding='utf-8') as fh:
     long_description = fh.read()
 
 setup(
     name='flask-oauth2-validation',
-    version='0.1.0',
+    version=main_ns['__version__'],
     author='Henrik Sachse',
     author_email='henrik@0x7d7b.net',
     description=(
