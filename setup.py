@@ -1,20 +1,11 @@
 from setuptools import find_packages, setup
 
-import flask_oauth2_validation
-
-install_dependencies = [
-    'jwt',
-    'requests',
-    'flask-executor',
-    'flask'
-]
-
 with open('README.md', 'r', encoding='utf-8') as fh:
     long_description = fh.read()
 
 setup(
     name='flask-oauth2-validation',
-    version=flask_oauth2_validation.__version__,
+    version='0.1.0.dev',
     author='Henrik Sachse',
     author_email='henrik@0x7d7b.net',
     description=(
@@ -43,5 +34,10 @@ setup(
     packages=find_packages('src'),
     python_requires='>=3.7',
     include_package_data=True,
-    install_requires=install_dependencies
+    install_requires=[
+        'jwt',
+        'requests',
+        'flask-executor',
+        'flask'
+    ]
 )
