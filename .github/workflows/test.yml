@@ -21,3 +21,12 @@ jobs:
       - name: Run tests
         run: |
           tox
+      - name: Coverage
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          flags: pytest
+          name: codecov-umbrella
+          fail_ci_if_error: true
+          verbose: true
