@@ -27,7 +27,7 @@ setup(
         'Bug Tracker':
             'https://github.com/0x7d7b/flask-oauth2-validation/issues',
         'Source':
-            'https://github.com/0x7d7b/flask-oauth-validation/'
+            'https://github.com/0x7d7b/flask-oauth-validation/',
         'Test Coverage':
             'https://codecov.io/gh/0x7d7b/flask-oauth2-validation'
     },
