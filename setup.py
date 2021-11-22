@@ -26,6 +26,8 @@ setup(
     project_urls={
         'Bug Tracker':
             'https://github.com/0x7d7b/flask-oauth2-validation/issues',
+        'Test Coverage':
+            'https://codecov.io/gh/0x7d7b/flask-oauth2-validation'
     },
     classifiers=[
         'Programming Language :: Python :: 3',
