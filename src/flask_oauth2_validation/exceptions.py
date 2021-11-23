@@ -23,8 +23,17 @@ class OAuth2Exception(BaseException):
         self.error_message = error_message
 
     def response(self):
+        """ Assembles an `flask.Response` object including
+        a `WWW-Authenticate` header.
+        """
+        
         response = make_response()
+        
+        # In case it has already been set we need to
+        # drop the Content-Type header as the response
+        # body will be empty.
         response.headers.pop('Content-Type', None)
+        
         response.status_code = self.status_code
         response.headers['WWW-Authenticate'] = ' '.join([
             'Bearer',
