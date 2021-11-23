@@ -18,6 +18,11 @@ class OAuth2Exception(BaseException):
     """
 
     def __init__(self, status_code: int, error: str, error_message: str):
+        """ Creates an `OAuth2Exception` object.
+        The `status_code` attributre defines the HTTP status code.
+        The `error` attribute defines the unique type of error.
+        And the `error_message` contains individual error details.
+        """
         self.status_code = status_code
         self.error = error
         self.error_message = error_message
@@ -26,14 +31,14 @@ class OAuth2Exception(BaseException):
         """ Assembles an `flask.Response` object including
         a `WWW-Authenticate` header.
         """
-        
+
         response = make_response()
-        
+
         # In case it has already been set we need to
         # drop the Content-Type header as the response
         # body will be empty.
         response.headers.pop('Content-Type', None)
-        
+
         response.status_code = self.status_code
         response.headers['WWW-Authenticate'] = ' '.join([
             'Bearer',
@@ -43,6 +48,10 @@ class OAuth2Exception(BaseException):
         return response
 
     def _error_description(self):
+        """ Creates a key-value pair to be added to the 
+        `WWW-Authenticate` header which contains individual
+        error details.
+        """
         return 'error_description="' + self.error_message + '"'
 
 
@@ -77,6 +86,12 @@ class OAuth2InsufficientScopeException(OAuth2Exception):
     """
 
     def __init__(self, missing_scope: str):
+        """ Creates an `OAuth2InsufficientScopeException` object.
+        The `status_code` attributre defines the HTTP status code.
+        The `error` attribute defines the unique type of error.
+        And the `missing_scope` is a list containing required but
+        not granted scopes.
+        """
         super().__init__(403, 'insufficient_scope', missing_scope)
 
     def _error_description(self):
