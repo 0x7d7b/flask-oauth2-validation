@@ -11,10 +11,10 @@ from functools import wraps
 from jwt import JWT, jwk_from_dict
 from jwt.exceptions import JWTDecodeError
 
-from .exceptions import OAuth2BadRequestException, \
-    OAuth2InsufficientScopeException, \
-    OAuth2InvalidTokenException, \
-    OAuth2Exception
+from .exceptions import OAuth2Exception
+from .exceptions import OAuth2BadRequestException
+from .exceptions import OAuth2InsufficientScopeException
+from .exceptions import OAuth2InvalidTokenException
 
 
 class OAuth2Decorator():
