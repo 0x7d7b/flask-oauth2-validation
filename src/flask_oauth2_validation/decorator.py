@@ -1,14 +1,15 @@
-from flask import Flask, request
-from flask_executor import Executor
-from functools import wraps
-from jwt import JWT, jwk_from_dict
-from jwt.exceptions import JWTDecodeError
 import base64
 import json
 import logging
 import requests
 import time
 import threading
+
+from flask import Flask, request
+from flask_executor import Executor
+from functools import wraps
+from jwt import JWT, jwk_from_dict
+from jwt.exceptions import JWTDecodeError
 
 from .exceptions import OAuth2BadRequestException, \
     OAuth2InsufficientScopeException, \
