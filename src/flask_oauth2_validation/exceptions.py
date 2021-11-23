@@ -6,13 +6,13 @@ class OAuth2Exception(BaseException):
     returned back to the client in case of any validation
     error.
 
-    The method :method:`OAuth2Exception.response` constructs
-    the Flask :class:`~flask.Response` object.
+    The method `OAuth2Exception.response()` constructs
+    the Flask `flask.Response` object.
 
     Error responses have an empty body. A `WWW-Authenticate`
     response header will be set containing an error attribute
     specifying the actual type of error. Each individual
-    :class:`OAuth2Exception` subclass sets its own unique value.
+    `OAuth2Exception` subclass sets its own unique value.
     Additional attributes may also be set containing further
     error details.
     """
@@ -41,7 +41,7 @@ class OAuth2BadRequestException(OAuth2Exception):
     """ Describes an HTTP 400 (bad request) response.
     ::
         WWW-Authenticate: Bearer error=invalid_request
-                                 error_description=:attr:`self.error_message`
+                                 error_description=`self.error_message`
     """
 
     def __init__(self, error_message: str):
@@ -52,7 +52,7 @@ class OAuth2InvalidTokenException(OAuth2Exception):
     """ Describes an HTTP 401 (unauthorized) response.
     ::
         WWW-Authenticate: Bearer error=invalid_token
-                                 error_description=:attr:`self.error_message`
+                                 error_description=`self.error_message`
     """
 
     def __init__(self, error_message: str):
@@ -64,7 +64,7 @@ class OAuth2InsufficientScopeException(OAuth2Exception):
     a whitespace separated list of scopes required but not granted.
     ::
         WWW-Authenticate: Bearer error=insufficient_scope
-                                 scope=:attr:`self.error_message`
+                                 scope=`self.error_message`
     """
 
     def __init__(self, missing_scope: str):
