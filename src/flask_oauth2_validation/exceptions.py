@@ -48,7 +48,7 @@ class OAuth2Exception(BaseException):
         return response
 
     def _error_description(self):
-        """ Creates a key-value pair to be added to the 
+        """ Creates a key-value pair to be added to the
         `WWW-Authenticate` header which contains individual
         error details.
         """
