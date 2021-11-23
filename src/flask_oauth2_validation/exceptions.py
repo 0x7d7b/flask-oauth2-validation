@@ -2,10 +2,19 @@ from flask import make_response
 
 
 class OAuth2Exception(BaseException):
-    """ Exception for building up an HTTP error response.
-    In case an error occurs the OAuth2Exception attributes
-    hold information which are being taken over into the
-    json error response.
+    """ Describes an HTTP error response which will be
+    returned back to the client in case of any validation
+    error.
+
+    The method :method:`OAuth2Exception.response` constructs
+    the Flask :class:`~flask.Response` object.
+
+    Error responses have an empty body. A `WWW-Authenticate`
+    response header will be set containing an error attribute
+    specifying the actual type of error. Each individual
+    :class:`OAuth2Exception` subclass sets its own unique value.
+    Additional attributes may also be set containing further
+    error details.
     """
 
     def __init__(self, status_code: int, error: str, error_message: str):
@@ -29,18 +38,34 @@ class OAuth2Exception(BaseException):
 
 
 class OAuth2BadRequestException(OAuth2Exception):
+    """ Describes an HTTP 400 (bad request) response.
+    ::
+        WWW-Authenticate: Bearer error=invalid_request
+                                 error_description=:attr:`self.error_message`
+    """
 
     def __init__(self, error_message: str):
         super().__init__(400, 'invalid_request', error_message)
 
 
 class OAuth2InvalidTokenException(OAuth2Exception):
+    """ Describes an HTTP 401 (unauthorized) response.
+    ::
+        WWW-Authenticate: Bearer error=invalid_token
+                                 error_description=:attr:`self.error_message`
+    """
 
     def __init__(self, error_message: str):
         super().__init__(401, 'invalid_token', error_message)
 
 
 class OAuth2InsufficientScopeException(OAuth2Exception):
+    """ Describes an HTTP 403 (forbidden) response. It contains
+    a whitespace separated list of scopes required but not granted.
+    ::
+        WWW-Authenticate: Bearer error=insufficient_scope
+                                 scope=:attr:`self.error_message`
+    """
 
     def __init__(self, missing_scope: str):
         super().__init__(403, 'insufficient_scope', missing_scope)
