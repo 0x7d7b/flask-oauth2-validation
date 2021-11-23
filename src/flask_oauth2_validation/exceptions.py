@@ -38,10 +38,10 @@ class OAuth2Exception(BaseException):
 
 
 class OAuth2BadRequestException(OAuth2Exception):
-    """ Describes an HTTP 400 (bad request) response.
-    ::
-        WWW-Authenticate: Bearer error=invalid_request
-                                 error_description=`self.error_message`
+    """ Describes an HTTP 400 (bad request) response:
+
+        `WWW-Authenticate: Bearer error="invalid_request" \
+                                  error_description="<msg>"`
     """
 
     def __init__(self, error_message: str):
@@ -49,10 +49,10 @@ class OAuth2BadRequestException(OAuth2Exception):
 
 
 class OAuth2InvalidTokenException(OAuth2Exception):
-    """ Describes an HTTP 401 (unauthorized) response.
-    ::
-        WWW-Authenticate: Bearer error=invalid_token
-                                 error_description=`self.error_message`
+    """ Describes an HTTP 401 (unauthorized) response:
+
+        `WWW-Authenticate: Bearer error="invalid_token" \
+                                  error_description="<msg>"`
     """
 
     def __init__(self, error_message: str):
@@ -61,10 +61,10 @@ class OAuth2InvalidTokenException(OAuth2Exception):
 
 class OAuth2InsufficientScopeException(OAuth2Exception):
     """ Describes an HTTP 403 (forbidden) response. It contains
-    a whitespace separated list of scopes required but not granted.
-    ::
-        WWW-Authenticate: Bearer error=insufficient_scope
-                                 scope=`self.error_message`
+    a whitespace separated list of scopes required but not granted:
+
+        `WWW-Authenticate: Bearer error="insufficient_scope" \
+                                  scope="<scope1> <scope2> ... <scopeN>"`
     """
 
     def __init__(self, missing_scope: str):
