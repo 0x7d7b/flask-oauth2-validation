@@ -40,7 +40,7 @@ app.config['OAUTH2_AUDIENCE'] = 'api://default'
 To provide OAuth2 token validation to your endpoints simply add the ```OAuth2Decorator```:
 
 ```python
-from flask_oauth2_validation import OAuth2Decoratory
+from flask_oauth2_validation import OAuth2Decorator
 
 oauth2 = OAuth2Decorator(app)
 
