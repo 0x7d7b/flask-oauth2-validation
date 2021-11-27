@@ -342,9 +342,10 @@ class OAuth2Decorator():
     def _validate_jwt(self, token: str, scopes: list) -> bool:
         """ Validates a JWT token by first figuring out a matching
         public key which must have been downloaded before (during
-        `__init__` or a configured update interval).
+        :func:`~flask_oauth2_validation.OAuth2Decorator.__init__` or
+        a configured update interval).
 
-        Second we hand over the token to the JWT module which decodes
+        Second we hand over the token to the :mod:`jwt` module which decodes
         it and performs basic validations.
 
         Last we assert that the tokens audience matches the configured ones
@@ -436,7 +437,7 @@ class OAuth2Decorator():
 
     def requires_token(self, introspect=False, scopes=[]):
         """ To provide OAuth2 token validation to your endpoints simply add the
-        OAuth2Decorator like::
+        :class:`~flask_oauth2_validation.OAuth2Decorator` like::
 
             from flask_oauth2_validation import OAuth2Decorator
 
@@ -472,6 +473,8 @@ class OAuth2Decorator():
                 token: dict = oauth2.token
                 pass
 
+        :param introspect: feature toggle to turn on remote validation
+        :param scopes: optional list of mandatory scopes
         """
 
         def decorator(fn):
