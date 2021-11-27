@@ -18,10 +18,53 @@ from .exceptions import OAuth2InvalidTokenException
 
 
 class OAuth2Decorator():
-    """ Flask view function decorator which adds OAuth2 support.
+    """ This Flask view function decorator provides local and remote
+    OAuth2 (RFC-6749) validation for self-encoded JWT (RFC-7519) based
+    Bearer (RFC-6750) access tokens.
+
+    The minimal configuration expects the OAUTH2_ISSUER attribute being set
+    which points to the issuer::
+
+        app.config['OAUTH2_ISSUER'] = 'https://<your-issuer>/oauth2'
+
+    This would perform local token validation after downloading the public
+    keys (RFC-7517) from the authorization server (RFC-7800).
+
+    In case you also need to perform remote token validation (RFC-7662)
+    an OAUTH2_CLIENT_ID and OAUTH2_CLIENT_SECRET need to be configured::
+
+        app.config['OAUTH2_CLIENT_ID'] = 'your-client-id'
+        app.config['OAUTH2_CLIENT_SECRET'] = 'your-client-secret'
+
+    In case your authorization server uses rotating public keys an
+    OAUTH2_JWKS_UPDATE_INTERVAL (in seconds) could be configured to regularly
+    download the latest public keys from the authorization server::
+
+        app.config['OAUTH2_JWKS_UPDATE_INTERVAL'] = 3600
+
+    For a more strict validation it is recommended to configure an
+    OAUTH2_AUDIENCE to verify the token against::
+
+        app.config['OAUTH2_AUDIENCE'] = 'api://default'
+
     """
 
     def __init__(self, app: Flask):
+        """ Reads the app configuration and requests
+        the Authorization Server Metadata as well as the
+        authorization servers public keys.
+
+        In case an auto reload of public keys has been
+        configured a flask executor is being initialized.
+        Whenever the last update is older than the configured
+        refresh interval a next incoming request would trigger
+        an async pubkey update request to the authorization
+        server.
+
+        In case remote validation is configured a request
+        will be sent to lookup the supported introspection
+        auth methods in addition.
+        """
 
         self._logger = logging.getLogger(__name__)
 
@@ -37,18 +80,21 @@ class OAuth2Decorator():
 
         self._jwt = None
         self._issuer = None
+        self._issuer_public_keys = None
         self._audience = None
         self._jwks_uri = None
         self._jwks_update_interval = None
         self._jwks_last_update_timestamp = None
         self._jwks_update_mutex = threading.Lock()
         self._executor = None
-        self._issuer_public_keys = None
         self._client_id = None
         self._client_secret = None
         self._introspection_endpoint = None
         self._introspection_auth_method = None
 
+        # We only want to send out the request to the
+        # authorization server metadata endpoint once
+        # that's why we cache its response, here.
         self._cached_metadata = None
 
         # The only mandatory value is the issuer URI.
@@ -151,7 +197,8 @@ class OAuth2Decorator():
             )
 
     def _lookup_keys(self) -> dict:
-        """ Downloads the public keys from an authorization server.
+        """ Downloads the public keys from an authorization server
+        according to RFC-7517.
         """
         try:
             self._logger.debug(
@@ -185,10 +232,15 @@ class OAuth2Decorator():
         """
         introspect = kwargs['introspect']
         scopes = kwargs['scopes']
+        # In case the decorated view function raises an exception
+        # it will be stored, here so that we can pass it down in a
+        # proper way, later.
         decorated_exception = None
         try:
+            # First we trigger a pubkey reload in case the time is up.
             if self._executor:
                 self._executor.submit(self._update_keys)
+            # Then we extract read the Bearer token from the request.
             if not request.headers.get('Authorization', None):
                 return OAuth2BadRequestException(
                     'Authorization header missing'
@@ -198,12 +250,19 @@ class OAuth2Decorator():
                 return OAuth2BadRequestException(
                     'Bearer access token missing'
                 ).response()
+            # In case we could successfully read a Bearer token from the
+            # request we can finally validate it.
             if self._is_valid(token, introspect, scopes):
                 kwargs.pop('scopes', None)
                 kwargs.pop('introspect', None)
                 try:
+                    # Only invoke the decorated view funtion in case
+                    # the token is valid.
                     return fn(*args, **kwargs)
                 except Exception as decorated_error:
+                    # We will handle this exception later after we
+                    # handled our own OAuth2 validation related
+                    # exceptions
                     decorated_exception = decorated_error
             else:
                 return OAuth2InvalidTokenException(
@@ -216,15 +275,23 @@ class OAuth2Decorator():
             return OAuth2InvalidTokenException(
                 'Token validation failed'
             ).response()
+        # Finally handle possible exceptions risen from
+        # the decorated view function.
         if decorated_exception:
             raise decorated_exception
 
     def _extract_token(self, authorization_header: str):
+        """ Extracts the Bearer access token from the HTTP
+        request header.
+        """
         if not authorization_header.startswith('Bearer '):
             return None
         return authorization_header.split(sep=' ')[1]
 
     def _is_valid(self, token: str, introspect: bool, scopes: list) -> bool:
+        """ First performs a local validation (always-on). And afterwards
+        a remote validation if configured.
+        """
         if introspect and (not self._client_id or not self._client_secret):
             raise OAuth2InvalidTokenException('Invalid configuration')
         # First perform a local valiation
@@ -236,9 +303,14 @@ class OAuth2Decorator():
         return valid
 
     def _request_introspection(self, token: str) -> bool:
+        """ Sends the token introspection request to the
+        authorization server.
+        """
         token_parameters = {
             'token': token,
         }
+        # We only support two introspection auth
+        # methods: client_secret_post ...
         if self._introspection_auth_method == 'client_secret_post':
             token_parameters['client_id'] = self._client_id
             token_parameters['client_secret'] = self._client_secret
@@ -246,6 +318,7 @@ class OAuth2Decorator():
             'Accept': 'application/json',
             'Content-Type': 'application/x-www-form-urlencoded'
         }
+        # ... and client_secret_basic.
         if self._introspection_auth_method == 'client_secret_basic':
             token_headers['Authentication'] = 'Basic ' + \
                 base64.b64encode(bytes(
@@ -267,6 +340,16 @@ class OAuth2Decorator():
             and token_information['active']
 
     def _validate_jwt(self, token: str, scopes: list) -> bool:
+        """ Validates a JWT token by first figuring out a matching
+        public key which must have been downloaded before (during
+        `__init__` or a configured update interval).
+
+        Second we hand over the token to the JWT module which decodes
+        it and performs basic validations.
+
+        Last we assert that the tokens audience matches the configured ones
+        and that all possibly expected scopes are present.
+        """
         pubkey = None
         if self._issuer_public_keys:
             key_id = self._lookup_key_id(token)
@@ -317,6 +400,10 @@ class OAuth2Decorator():
             raise OAuth2InvalidTokenException(str(decode_error))
 
     def _lookup_key_id(self, token: str) -> str:
+        """ Extracts the key id from the token header so that
+        we can match it against the ids of all known downloaded
+        public keys, later.
+        """
         try:
             header = token.split('.')[0]
             # Correct the padding
@@ -328,8 +415,15 @@ class OAuth2Decorator():
             raise OAuth2BadRequestException('Invalid token format')
 
     def _update_keys(self):
+        """ Performs an automated update of our known authorization
+        server public keys based on the configured update interval.
+        """
         if (self._jwks_update_interval
                 and self._jwks_last_update_timestamp):
+            # We only allow one update at a time to not mess up
+            # our list of pubkeys. This anyhow runs async to the
+            # requests so it shouldn't be recognizable by our
+            # clients.
             with self._jwks_update_mutex:
                 now = time.time()
                 if int(self._jwks_last_update_timestamp) + \
@@ -341,8 +435,45 @@ class OAuth2Decorator():
                         self._logger.error(error)
 
     def requires_token(self, introspect=False, scopes=[]):
-        """ Decorates a flask view function to add OAuth2 support.
+        """ To provide OAuth2 token validation to your endpoints simply add the
+        OAuth2Decorator like::
+
+            from flask_oauth2_validation import OAuth2Decorator
+
+            oauth2 = OAuth2Decorator(app)
+
+            @oauth2.requires_token()
+            @app.route('/protected')
+            def protected():
+                pass
+
+        This would perform local token validation, only. To enable remote token
+        validation you need to provide the introspect=True argument::
+
+            @oauth2.requires_token(introspect=True)
+            @app.route('/protected')
+            def protected():
+                pass
+
+        In case you require one or multiple scopes to allow execution, add the
+        `scopes=[...]` argument::
+
+            @oauth2.requires_token(scopes=['profile', 'email'])
+            @app.route('/protected')
+            def protected():
+                pass
+
+        To use the token from within your method you can access it via the
+        OAuth2Decorator object like::
+
+            @oauth2.requires_token()
+            @app.route('/protected')
+            def protected():
+                token: dict = oauth2.token
+                pass
+
         """
+
         def decorator(fn):
             @wraps(fn)
             def decorated(*args, **kwargs):

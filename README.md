@@ -68,7 +68,7 @@ def protected():
     pass
 ```
 
-To access the token from within your method you can access it via the ```OAuth2Decorator``` object like:
+To use the token from within your method you can access it via the ```OAuth2Decorator``` object like:
 
 ```python
 @oauth2.requires_token()
