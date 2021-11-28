@@ -7,7 +7,7 @@ from jwt import JWT
 def _generate_test_keys() -> Tuple[rsa.RSAPublicKey, rsa.RSAPrivateKey]:
     private_key: rsa.RSAPrivateKey = rsa.generate_private_key(
         public_exponent=65537,
-        key_size=1024
+        key_size=2048
     )
     public_key = private_key.public_key()
     return public_key, private_key
