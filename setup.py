@@ -5,7 +5,7 @@ with open('README.md', 'r', encoding='utf-8') as fh:
 
 setup(
     name='flask-oauth2-validation',
-    version='0.1.2',
+    version='0.1.3',
     author='Henrik Sachse',
     author_email='henrik@0x7d7b.net',
     description=(
