@@ -49,7 +49,7 @@ class OAuth2Decorator():
 
     """
 
-    def __init__(self, app: Flask):
+    def __init__(self, app=None):
         """ Reads the app configuration and requests
         the Authorization Server Metadata as well as the
         authorization servers public keys.
@@ -67,12 +67,6 @@ class OAuth2Decorator():
         """
 
         self._logger = logging.getLogger(__name__)
-
-        app.config.setdefault('OAUTH2_ISSUER', None)
-        app.config.setdefault('OAUTH2_AUDIENCE', None)
-        app.config.setdefault('OAUTH2_JWKS_UPDATE_INTERVAL', None)
-        app.config.setdefault('OAUTH2_CLIENT_ID', None)
-        app.config.setdefault('OAUTH2_CLIENT_SECRET', None)
 
         # Holds the current requests token in case
         # the verification steps where all successful.
@@ -96,6 +90,17 @@ class OAuth2Decorator():
         # authorization server metadata endpoint once
         # that's why we cache its response, here.
         self._cached_metadata = None
+
+        if app is not None:
+            self.init_app(app)
+
+    def init_app(self, app: Flask):
+
+        app.config.setdefault('OAUTH2_ISSUER', None)
+        app.config.setdefault('OAUTH2_AUDIENCE', None)
+        app.config.setdefault('OAUTH2_JWKS_UPDATE_INTERVAL', None)
+        app.config.setdefault('OAUTH2_CLIENT_ID', None)
+        app.config.setdefault('OAUTH2_CLIENT_SECRET', None)
 
         # The only mandatory value is the issuer URI.
         # In case it is the only value we expect it to offer
