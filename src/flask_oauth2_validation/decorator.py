@@ -49,7 +49,7 @@ class OAuth2Decorator():
 
     """
 
-    def __init__(self, app=None):
+    def __init__(self, app: Flask | None = None):
         """ Reads the app configuration and requests
         the Authorization Server Metadata as well as the
         authorization servers public keys.
