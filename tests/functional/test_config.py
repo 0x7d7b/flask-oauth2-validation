@@ -125,3 +125,11 @@ def test_introspection_setup_without_secret(test_app):
     with pytest.raises(TypeError) as err:
         OAuth2Decorator(test_app)
     assert str(err.value) == 'OAUTH2_CLIENT_SECRET config property required'
+
+
+def test_set_up_using_flask_application_factory(test_app):
+    test_app.config['OAUTH2_ISSUER'] = 'https://issuer.local/oauth2'
+    oauth2 = OAuth2Decorator()
+    oauth2.init_app(test_app)
+    assert oauth2._issuer == 'https://issuer.local/oauth2'
+    assert oauth2._jwks_uri == 'https://issuer.local/oauth2/keys'

@@ -10,3 +10,4 @@ dist/
 htmlcov/
 coverage.xml
 lcov.info
+.idea/
