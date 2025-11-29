@@ -18,12 +18,3 @@ jobs:
       - name: Build package
         run: |
           python setup.py egg_info --tag-build=dev --tag-date sdist
-      - name: Pre-publish check
-        run: |
-          twine check dist/*
-      - name: Publish to TestPyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-        run: |
-          twine upload --disable-progress-bar --skip-existing --non-interactive --verbose --repository testpypi dist/*
