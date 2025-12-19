@@ -78,6 +78,45 @@ def protected():
     pass
 ```
 
+If you're using the **Flask Application Factory**, set up using `init_app()` like:
+
+```python
+# __init__.py
+
+oauth2 = OAuth2Decorator()
+
+
+def create_app(config_class=Config):
+    application = Flask(__name__)
+    application.config.from_object(config_class)
+    
+    # ... register blueprints etc
+
+    with application.app_context():
+        oauth2.init_app(application) # <-- call init_app()
+        return application
+```
+
+```python
+# some-blueprint-file.py
+
+from api import oauth2  # <-- from __init__.py
+
+bp = Blueprint('users', __name__, url_prefix=Config.ROOT_URL+ '/api/v1')
+
+
+@oauth2.requires_token()
+@bp.route('/users', methods=['GET'])
+def index():
+    """
+    Get all users
+    """
+    users = User.query.all()
+    return users_schema.dump(users)
+
+```
+
+
 # License
 
     MIT License
